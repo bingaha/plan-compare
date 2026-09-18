@@ -6,24 +6,28 @@
 <style>
 :root{
   --bg:#f4f5f7; --card:#fff; --line:#e4e7ec; --line2:#cfd4dc;
-  --text:#17202e; --muted:#667085; --accent:#2563eb;
+  --text:#17202e; --muted:#667085; --accent:#2563eb; --accent-weak:#eef3ff;
   --best-bg:#e6f6ec; --best-fg:#177245;
   --danger:#d92d20; --danger-bg:#fef3f2; --danger-line:#fecdca;
+  --c-cfg:#1b5ec2; --c-gen:#7c3aed;
 }
 *{box-sizing:border-box}
 body{margin:0;font:13px/1.5 system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:var(--text);background:var(--bg)}
+.hidden{display:none!important}
 #topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
 h1{font-size:15px;margin:0;font-weight:600}
 .modetag{font-size:11px;border:1px solid var(--line2);border-radius:4px;padding:1px 6px;color:var(--muted)}
 .spacer{flex:1}
 button{font:inherit;border-radius:6px;cursor:pointer}
-.ghost{background:var(--card);border:1px solid var(--line2);color:var(--text);padding:6px 12px}
+.primary{background:var(--accent);color:#fff;border:1px solid var(--accent);padding:6px 20px}
+.ghost{background:var(--card);border:1px solid var(--line2);color:var(--text);padding:6px 12px;cursor:pointer;user-select:none}
 .ghost:hover{border-color:var(--accent);color:var(--accent)}
+.ghost.sm{padding:2px 8px;font-size:12px}
 .status{font-size:12px;color:var(--muted)}
 .status.saved{color:var(--best-fg)}
-.toggle{display:flex;align-items:center;gap:5px;color:var(--text);cursor:pointer;user-select:none}
+.toggle{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none}
+.srfile{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 .banner{margin:12px 16px;padding:10px 14px;border:1px solid var(--danger-line);background:var(--danger-bg);color:var(--danger);border-radius:8px}
-.banner.hidden{display:none}
 .banner ul{margin:6px 0 0;padding-left:18px}
 main{padding:14px 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:12px}
@@ -36,53 +40,77 @@ input,select{font:inherit;color:var(--text);background:#fff;border:1px solid tra
 input:hover,select:hover{border-color:var(--line2)}
 input:focus,select:focus{border-color:var(--accent);outline:none}
 input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
-.srcinput{width:140px;border-color:var(--line2)}
 .tablewrap{overflow:auto;max-height:calc(100vh - 185px);border:1px solid var(--line);border-radius:8px;background:var(--card)}
-table{border-collapse:separate;border-spacing:0;min-width:100%}
+table.main{border-collapse:separate;border-spacing:0;min-width:100%}
 th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0 6px;height:32px;white-space:nowrap;background:var(--card)}
 th:last-child,td:last-child{border-right:none}
 thead th{position:sticky;top:0;z-index:5;background:#f9fafb;font-weight:600;text-align:left;user-select:none;cursor:pointer}
 thead tr.frow th{top:32px;cursor:default}
 thead tr.frow th input{width:100%}
 .arr{color:var(--accent);font-size:11px;margin-left:2px}
-.delsrc{margin-left:6px;font-size:11px;color:var(--muted);background:none;border:none;padding:0 2px}
-.delsrc:hover{color:var(--danger)}
 tbody tr:hover td{background:#f5f8ff}
 tr:hover td.best{background:var(--best-bg)}
-td input,td select{border-color:transparent}
-td input:hover,td select:hover{border-color:var(--line2)}
-td input[type=number]{width:64px}
-td input[type=text]{width:100%}
 td .na{color:#c2c8d2}
 td.calc{font-variant-numeric:tabular-nums;text-align:right;min-width:92px}
 td.k-mtoksPerYuan{font-weight:600}
-td.best{background:var(--best-bg)!important;color:var(--best-fg)}
-td.scorecell{min-width:84px}
-td.wide{min-width:220px}
-.s0{position:sticky;left:0;z-index:2;width:88px;min-width:88px;max-width:88px}
-.s1{position:sticky;left:88px;z-index:2;width:130px;min-width:130px;max-width:130px}
-.s2{position:sticky;left:218px;z-index:2;width:118px;min-width:118px;max-width:118px}
-thead th.s0,thead th.s1,thead th.s2{z-index:7}
-td.delcell,th.delcol{min-width:36px;text-align:center}
+td.best{background:var(--best-bg)!important;color:var(--best-fg)!important}
+td.cat-cfg,th.cat-cfg{color:var(--c-cfg)}
+td.cat-gen,th.cat-gen{color:var(--c-gen)}
+td.opscell,th.opscell{min-width:44px;text-align:center}
 button.del{font-size:11px;color:var(--muted);background:none;border:none;padding:2px 4px}
 button.del:hover{color:var(--danger)}
 td.empty{text-align:center;color:var(--muted);padding:24px}
+.s0{position:sticky;left:0;z-index:2;width:110px;min-width:110px;max-width:110px}
+.s1{position:sticky;left:110px;z-index:2;width:180px;min-width:180px;max-width:180px}
+.s2{position:sticky;left:290px;z-index:2;width:118px;min-width:118px;max-width:118px}
+thead th.s0,thead th.s1,thead th.s2{z-index:7}
+/* 弹窗 */
+.overlay{position:fixed;inset:0;background:rgba(23,32,46,.45);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:36px 16px;overflow:auto}
+.dialog{background:var(--card);border-radius:10px;max-width:1060px;width:100%;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.dlghead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.dlghead b{font-size:14px}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tab{background:none;border:none;padding:6px 12px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;font:inherit}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.mgmtgrid{display:flex;gap:14px;min-height:320px}
+.plist{width:168px;border-right:1px solid var(--line);padding-right:10px}
+.plist ul{list-style:none;margin:8px 0 0;padding:0}
+.plist li{display:flex;align-items:center;gap:4px;padding:5px 8px;border-radius:6px;cursor:pointer}
+.plist li:hover{background:#f2f5fb}
+.plist li.sel{background:var(--accent-weak);color:var(--accent);font-weight:600}
+.plist li span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdetail{flex:1;min-width:0}
+.pdetail h3{font-size:13px;margin:14px 0 6px;display:flex;align-items:center;gap:8px}
+.mtab{width:100%;border-collapse:collapse}
+.mtab th{font-size:12px;color:var(--muted);text-align:left;font-weight:500;padding:4px 6px;border-bottom:1px solid var(--line)}
+.mtab td{padding:3px 6px;border-bottom:1px solid var(--line)}
+.mtab input{width:100%;border-color:var(--line2)}
+.mtab td.num{width:86px}
+.mtab td.op{width:30px;text-align:center}
+.planbox{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px}
+.planrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0}
+.planrow label{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px}
+.planrow input,.planrow select{border-color:var(--line2)}
+.planrow input.w60{width:70px}
+.planrow input.wname{width:150px}
+.planrow input.wnote{flex:1;min-width:200px}
+.srow{display:flex;gap:8px;align-items:center;margin:4px 0}
+.srow input{border-color:var(--line2);flex:1}
+.srow input.num{flex:0 0 90px}
 </style>
 </head>
 <body>
 <header id="topbar">
   <h1>Agent 套餐价格对比</h1>
-  <span id="modetag" class="modetag hidden" style="display:none">导入数据</span>
+  <span id="modetag" class="modetag" style="display:none">导入数据</span>
   <span id="status" class="status"></span>
   <span class="spacer"></span>
-  <label class="toggle" title="隐藏内置套餐行，仅显示你自己添加的行"><input type="checkbox" id="hideBuiltin"> 只看自己录入的</label>
-  <input id="newSource" class="srcinput" placeholder="新评分源名称">
-  <button id="btnAddSource" class="ghost">添加评分源</button>
-  <button id="btnAddPlan" class="ghost">添加套餐行</button>
-  <button id="btnRestore" class="ghost" title="清空浏览器本地保存的全部修改，回到内置数据">恢复内置默认</button>
-  <button id="btnImport" class="ghost" title="从导出的 JSON 文件恢复数据">导入</button>
-  <button id="btnExport" class="ghost" title="把当前全部数据（含你的修改）导出为 JSON 文件">导出</button>
-  <input type="file" id="importFile" accept=".json,application/json" hidden>
+  <label class="toggle" title="隐藏套餐与模型均为内置的行"><input type="checkbox" id="hideBuiltin"> 只看自己录入的</label>
+  <button id="btnMgmt" class="ghost">管理数据</button>
+  <button id="btnRestore" class="ghost" title="丢弃本地全部维护内容，回到内置种子数据">恢复内置默认</button>
+  <label for="importFile" class="ghost" title="从导出的 JSON 文件恢复数据">导入</label>
+  <button id="btnExport" class="ghost" title="把当前全部数据导出为 JSON 文件">导出</button>
+  <input type="file" id="importFile" accept=".json,application/json" class="srfile">
 </header>
 <div id="banner" class="banner hidden"></div>
 <main>
@@ -91,84 +119,89 @@ td.empty{text-align:center;color:var(--muted);padding:24px}
     <label>输入占比 <input id="g-inputRatio" type="number" step="0.01"></label>
     <label>缓存命中率 <input id="g-cacheHitRate" type="number" step="0.01"></label>
     <label>输出占比 <input id="g-outputRatio" type="number" step="0.01"></label>
-    <span class="hint">综合单价 = 输入占比 ×（命中率 × 缓存价 + (1−命中率) × 输入价）+ 输出占比 × 输出价；消耗/价格倍率默认 1，>1 表示计费放大或加价</span>
+    <span class="hint">综合单价 = 输入占比 ×（命中率 × 缓存价 + (1−命中率) × 输入价）+ 输出占比 × 输出价</span>
+    <span class="hint">列颜色：<span style="color:var(--text)">名称</span> / <span style="color:var(--c-cfg)">可维护数据</span> / <span style="color:var(--c-gen)">计算生成</span>；数据在「管理数据」里维护</span>
   </section>
-  <div class="tablewrap"><table id="tbl"></table></div>
+  <div class="tablewrap"><table class="main" id="tbl"></table></div>
 </main>
+
+<div id="mgmtOverlay" class="overlay hidden">
+  <div class="dialog">
+    <div class="dlghead"><b>管理数据</b><span class="hint">改动实时保存到浏览器本地，并同步到主表</span><span class="spacer"></span><button id="mgmtClose" class="ghost sm">关闭</button></div>
+    <div class="tabs"><button class="tab active" data-tab="plans">平台 / 模型 / 套餐</button><button class="tab" data-tab="scores">评分</button></div>
+    <div id="tab-plans">
+      <div class="mgmtgrid">
+        <div class="plist"><button id="btnAddPlatform" class="ghost sm">+ 添加平台</button><ul id="platformList"></ul></div>
+        <div class="pdetail" id="platformDetail"></div>
+      </div>
+    </div>
+    <div id="tab-scores" class="hidden">
+      <div id="scoresEditor"></div>
+      <button id="btnAddScoreRow" class="ghost sm" style="margin-top:8px">+ 添加评分行</button>
+    </div>
+  </div>
+</div>
+
+<div id="miniOverlay" class="overlay hidden">
+  <div class="dialog" style="max-width:430px" id="miniDialog"></div>
+</div>
 
 <script src="data.js"></script>
 <script type="module">
 'use strict';
 const $ = (s) => document.querySelector(s);
 const tbl = $('#tbl'), banner = $('#banner'), statusEl = $('#status'), modeTag = $('#modetag');
-const LSK = 'plan-compare:overlay:v1';
+const NEWKEY = 'plan-compare:dataset:v1';
 
-const TEXT_COLS = ['platform', 'plan', 'model', 'note'];
-const CALC = ['monthlyCost', 'monthlyUsage', 'blended', 'availMtoks', 'effectiveMtoks', 'mtoksPerYuan'];
 const MONTHS = { month: 1, quarter: 3, year: 12 };
+const esc = (s) => String(s).replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+const nz = (v, d) => (v == null || v === '' ? d : Number(v));
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const fmt = (v, money) => {
+  if (typeof v !== 'number' || !isFinite(v)) return '—';
+  if (money) return v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (Math.abs(v) >= 10000) return v.toLocaleString('zh-CN', { maximumFractionDigits: 0 });
+  return String(Number(v.toPrecision(4)));
+};
+const uuid = () => crypto.randomUUID();
 
-const BASE_COLS = [
-  { k: 'platform', label: '平台', type: 'text', s: 0 },
-  { k: 'plan', label: '套餐', type: 'text', s: 1 },
-  { k: 'model', label: '模型', type: 'text', s: 2 },
-  { k: 'mode', label: '方式', type: 'select', opts: [['quota', '额度制'], ['usage', '用量制']], title: '额度制：按套餐内额度换算总用量；用量制：直接填实际可用量' },
-  { k: 'price', label: '购买价(元)', type: 'num', title: '实付人民币：单期价格（月价或资源包总价，与用量M同周期）' },
-  { k: 'period', label: '周期', type: 'select', opts: [['month', '月'], ['quarter', '季'], ['year', '年']] },
-  { k: 'consumeRate', label: '消耗倍率', type: 'num', title: '名义用 1M 按 X 计费（如高峰期 1M 按 2M 计费则填 2）' },
-  { k: 'priceRate', label: '价格倍率', type: 'num', title: '名义价格 × 该倍率 = 实际价格（如 2 折渠道填 0.2）' },
-  { k: 'monthlyCost', label: '月均成本(元)', calc: true, money: true },
-  { k: 'usageM', label: '用量M(Mtok/周期)', type: 'num', modeOnly: 'usage', title: '该周期内实际可用的名义 token 量' },
-  { k: 'monthlyUsage', label: '月均用量(Mtok)', calc: true },
-  { k: 'quota', label: '套餐内额度', type: 'num', modeOnly: 'quota', title: '按套餐内计价币种填写（与下面三个单价同币种）' },
-  { k: 'priceIn', label: '输入价', type: 'num', modeOnly: 'quota', title: '每 Mtok，与额度同币种' },
-  { k: 'priceOut', label: '输出价', type: 'num', modeOnly: 'quota', title: '每 Mtok，与额度同币种' },
-  { k: 'priceCache', label: '缓存价', type: 'num', modeOnly: 'quota', title: '缓存命中每 Mtok，与额度同币种' },
-  { k: 'blended', label: '综合单价', calc: true, modeOnly: 'quota', title: '按全局混合比折算的每 Mtok 综合价' },
-  { k: 'availMtoks', label: '可用Mtoks', calc: true, modeOnly: 'quota', title: '额度 ÷ (综合单价 × 价格倍率)' },
-  { k: 'effectiveMtoks', label: '有效Mtoks', calc: true, title: '可用 ÷ 消耗倍率' },
-  { k: 'mtoksPerYuan', label: 'Mtoks/元', calc: true, title: '有效Mtoks ÷ 实付金额' },
-  { k: 'note', label: '备注', type: 'text', wide: true },
-];
-const DEL_COL = { k: '_del', label: '' };
-
-let dirtyTimer = null, sortKey = 'mtoksPerYuan', sortDir = 'desc';
-let filters = {}, filterTimer = null, lastFilterKey = null;
-
-// ---------- 数据层：内置数据 ⊕ localStorage 覆盖层 ----------
+// ---------- 数据层：localStorage 中的完整数据集（首访由内置数据播种） ----------
 
 const BUILTIN = window.BUILTIN_DATA;
 
-const freshOverlay = () => ({
-  version: 1,
-  customRows: [],       // 用户新建的行（含 origin:'custom'）
-  rowEdits: {},         // 对内置行的字段级修改：{id: {field: value}}，与内置值相同则移除
-  deletedRowIds: [],    // 被删除的内置行 id
-  scoreEdits: {},       // 对内置评分源数值的修改/新增：{src: {model: number|null}}，null 表示删除
-  customSources: {},    // 用户新增的评分源：{src: {model: number}}
-  deletedSources: [],   // 被删除的内置评分源
-  globalEdits: {},      // 全局参数修改
-  hideBuiltin: false,   // 只看自己录入的
-  fullData: null        // 导入模式：非 null 时完全替代内置⊕覆盖层
-});
-
-let overlay = freshOverlay();
-let storageOk = true;
-
-function loadOverlay() {
-  let saved = null;
-  try { saved = localStorage.getItem(LSK); } catch (e) { storageOk = false; }
-  if (saved == null) return;
-  try {
-    const parsed = JSON.parse(saved);
-    if (parsed && typeof parsed === 'object') overlay = { ...freshOverlay(), ...parsed };
-  } catch (e) {
-    showBanner(['浏览器本地保存的数据无法解析，已按内置数据启动（原数据保留在 localStorage，可用"恢复内置默认"清掉）。']);
+function seedStore() {
+  const data = clone(BUILTIN);
+  for (const p of data.platforms) {
+    p.origin = 'builtin';
+    for (const m of p.models) m.origin = 'builtin';
+    for (const pl of p.plans) pl.origin = 'builtin';
+    for (const pl of p.plans) if (pl.mode === 'usage' && !pl.usageM) pl.usageM = {};
   }
+  return { seedVersion: BUILTIN.version, modified: false, imported: false, hideBuiltin: false, data };
+}
+
+let store = null, storageOk = true;
+let updateHint = false;
+
+function loadStore() {
+  let saved = null;
+  try { saved = localStorage.getItem(NEWKEY); } catch (e) { storageOk = false; }
+  if (saved != null) {
+    try {
+      const st = JSON.parse(saved);
+      if (st && st.data && Array.isArray(st.data.platforms)) {
+        if ((st.seedVersion || 0) < BUILTIN.version && !st.modified) return seedStore();
+        if ((st.seedVersion || 0) < BUILTIN.version) updateHint = true;
+        return { seedVersion: BUILTIN.version, modified: false, imported: false, hideBuiltin: false, ...st };
+      }
+    } catch (e) { /* 损坏数据视同不存在 */ }
+  }
+  return seedStore();
 }
 
 function persist() {
   try {
-    localStorage.setItem(LSK, JSON.stringify(overlay));
+    localStorage.setItem(NEWKEY, JSON.stringify(store));
     statusEl.textContent = '已自动保存 ' + new Date().toLocaleTimeString('zh-CN', { hour12: false });
     statusEl.className = 'status saved';
   } catch (e) {
@@ -177,137 +210,50 @@ function persist() {
     showBanner(['localStorage 不可用（' + e.message + '）：本次修改只在当前页面内有效，刷新后会丢失。']);
   }
 }
+let dirtyTimer = null;
 const markDirty = () => { clearTimeout(dirtyTimer); dirtyTimer = setTimeout(persist, 400); };
+const markModified = () => { store.modified = true; markDirty(); };
 
-const effGlobal = () => overlay.fullData
-  ? { ...overlay.fullData.global }
-  : { ...BUILTIN.global, ...overlay.globalEdits };
-
-const effScores = () => {
-  if (overlay.fullData) return overlay.fullData.scores || {};
-  const s = {};
-  for (const [src, vals] of Object.entries(BUILTIN.scores || {})) {
-    if (overlay.deletedSources.includes(src)) continue;
-    const t = { ...vals };
-    for (const [m, v] of Object.entries(overlay.scoreEdits[src] || {})) { if (v == null) delete t[m]; else t[m] = v; }
-    s[src] = t;
-  }
-  for (const [src, vals] of Object.entries(overlay.customSources)) s[src] = { ...vals };
-  return s;
+const DS = () => store.data;
+const scoreIndex = () => {
+  const idx = {};
+  for (const e of DS().scores || []) if (e.src && e.model) (idx[e.src] ??= {})[e.model] = e.value;
+  return idx;
+};
+const scoreSrcs = () => [...new Set((DS().scores || []).filter((e) => e.src && e.model).map((e) => e.src))];
+const rows = () => {
+  const out = [];
+  for (const p of DS().platforms)
+    for (const pl of p.plans)
+      for (const m of p.models)
+        out.push({ platform: p, plan: pl, model: m, key: pl.id + '::' + m.id });
+  return out;
 };
 
-const effPlans = () => {
-  if (overlay.fullData) return overlay.fullData.plans;
-  const base = BUILTIN.plans
-    .filter((p) => !overlay.deletedRowIds.includes(p.id))
-    .map((p) => ({ ...p, ...(overlay.rowEdits[p.id] || {}), origin: 'builtin' }));
-  return [...base, ...overlay.customRows.map((r) => ({ ...r, origin: 'custom' }))];
-};
-
-function locateRow(id) {
-  if (overlay.fullData) {
-    const obj = overlay.fullData.plans.find((p) => p.id === id);
-    return obj ? { obj, origin: obj.origin || 'builtin' } : null;
-  }
-  const c = overlay.customRows.find((p) => p.id === id);
-  if (c) return { obj: c, origin: 'custom' };
-  if (overlay.deletedRowIds.includes(id)) return null;
-  const b = BUILTIN.plans.find((p) => p.id === id);
-  return b ? { obj: b, origin: 'builtin' } : null;
-}
-
-function setRowField(loc, field, value) {
-  if (overlay.fullData || loc.origin === 'custom') { loc.obj[field] = value; return; }
-  const cur = (overlay.rowEdits[loc.obj.id] ??= {});
-  const bval = BUILTIN.plans.find((p) => p.id === loc.obj.id)?.[field];
-  if (value === bval) delete cur[field]; else cur[field] = value;
-}
-
-function deleteRow(id) {
-  if (overlay.fullData) {
-    const i = overlay.fullData.plans.findIndex((p) => p.id === id);
-    if (i >= 0) overlay.fullData.plans.splice(i, 1);
-    return;
-  }
-  const ci = overlay.customRows.findIndex((p) => p.id === id);
-  if (ci >= 0) { overlay.customRows.splice(ci, 1); return; }
-  if (!overlay.deletedRowIds.includes(id)) overlay.deletedRowIds.push(id);
-  delete overlay.rowEdits[id];
-}
-
-function addRow(template) {
-  if (overlay.fullData) overlay.fullData.plans.push(template);
-  else overlay.customRows.push(template);
-}
-
-function setScore(src, model, raw) {
-  if (raw === '') {
-    if (overlay.fullData) { if (overlay.fullData.scores[src]) delete overlay.fullData.scores[src][model]; return; }
-    if (overlay.customSources[src]) { delete overlay.customSources[src][model]; return; }
-    (overlay.scoreEdits[src] ??= {})[model] = null;
-    return;
-  }
-  const n = Number(raw);
-  if (!isFinite(n)) return;
-  if (overlay.fullData) { (overlay.fullData.scores[src] ??= {})[model] = n; return; }
-  if (overlay.customSources[src]) { overlay.customSources[src][model] = n; return; }
-  const cur = (overlay.scoreEdits[src] ??= {});
-  if (BUILTIN.scores?.[src]?.[model] === n) delete cur[model]; else cur[model] = n;
-}
-
-function deleteScoreSource(src) {
-  if (overlay.fullData) { delete overlay.fullData.scores[src]; return; }
-  if (overlay.customSources[src]) { delete overlay.customSources[src]; return; }
-  if (!overlay.deletedSources.includes(src)) overlay.deletedSources.push(src);
-  delete overlay.scoreEdits[src];
-}
-
-function setGlobal(field, value) {
-  if (overlay.fullData) { overlay.fullData.global[field] = value; return; }
-  const bval = BUILTIN.global?.[field];
-  if (value === bval) delete overlay.globalEdits[field]; else overlay.globalEdits[field] = value;
-}
-
-// ---------- 计算与渲染 ----------
-
-const esc = (s) => String(s).replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
-const nz = (v, d) => (v == null || v === '' ? d : Number(v));
-const scoreCols = () => Object.keys(effScores()).map((src) => ({ k: 'score:' + src, label: src, type: 'num', score: true, src }));
-const allCols = () => [...BASE_COLS, ...scoreCols(), DEL_COL];
-const fmt = (v, money) => {
-  if (typeof v !== 'number' || !isFinite(v)) return '—';
-  if (money) return v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  if (Math.abs(v) >= 10000) return v.toLocaleString('zh-CN', { maximumFractionDigits: 0 });
-  return String(Number(v.toPrecision(4)));
-};
-
-function compute(p) {
-  const g = effGlobal();
-  const m = MONTHS[p.period] || 1;
-  const pr = nz(p.priceRate, 1), cr = nz(p.consumeRate, 1);
-  const price = nz(p.price, NaN);
+function compute(r) {
+  const g = DS().global;
+  const pl = r.plan, m = r.model;
+  const months = MONTHS[pl.period] || 1;
+  const pr = nz(pl.priceRate, 1), cr = nz(pl.consumeRate, 1), price = nz(pl.price, NaN);
   const ir = nz(g.inputRatio, NaN), hr = nz(g.cacheHitRate, NaN), or = nz(g.outputRatio, NaN);
-  const out = { monthlyCost: null, monthlyUsage: null, blended: null, availMtoks: null, effectiveMtoks: null, mtoksPerYuan: null };
-  out.monthlyCost = price * pr / m;
-  if (p.mode === 'usage') {
-    const um = nz(p.usageM, NaN);
+  const out = { monthlyCost: null, blended: null, effectiveMtoks: null, mtoksPerYuan: null };
+  out.monthlyCost = price * pr / months;
+  if (pl.mode === 'usage') {
+    const um = nz(pl.usageM?.[m.id], NaN);
     if (isFinite(um) && um > 0) {
       const eff = um / cr;
-      out.effectiveMtoks = eff;
-      out.monthlyUsage = eff / m;
+      out.effectiveMtoks = eff / months / 100;
       out.mtoksPerYuan = eff / (price * pr);
     }
   } else {
-    const pin = nz(p.priceIn, NaN), pout = nz(p.priceOut, NaN), pc = nz(p.priceCache, NaN), q = nz(p.quota, NaN);
+    const pin = nz(m.priceIn, NaN), pout = nz(m.priceOut, NaN), pc = nz(m.priceCache, NaN), q = nz(pl.quota, NaN);
     if ([ir, hr, or, pin, pout, pc].every(isFinite)) {
       const b = ir * (hr * pc + (1 - hr) * pin) + or * pout;
       out.blended = b;
       if (isFinite(q) && q > 0 && b > 0) {
         const avail = q / (b * pr);
         const eff = avail / cr;
-        out.availMtoks = avail;
-        out.effectiveMtoks = eff;
-        out.monthlyUsage = eff / m;
+        out.effectiveMtoks = eff / months / 100;
         out.mtoksPerYuan = eff / price;
       }
     }
@@ -315,27 +261,59 @@ function compute(p) {
   return out;
 }
 
+// ---------- 主表（只读视图） ----------
+
+const CALC = ['monthlyCost', 'blended', 'effectiveMtoks', 'mtoksPerYuan'];
+const PERIOD_TEXT = { month: '月', quarter: '季', year: '年' };
+const BASE_COLS = [
+  { k: 'platform', label: '平台', s: 0, type: 'text', get: (r) => r.platform.name },
+  { k: 'plan', label: '套餐', s: 1, type: 'text', get: (r) => r.plan.name },
+  { k: 'model', label: '模型', s: 2, type: 'text', get: (r) => r.model.name },
+  { k: 'mode', label: '方式', type: 'text', cat: 'cfg', get: (r) => r.plan.mode === 'quota' ? '额度制' : '用量制' },
+  { k: 'price', label: '购买价(元)', type: 'num', cat: 'cfg', get: (r) => r.plan.price, title: '套餐实付人民币（周期见下）' },
+  { k: 'period', label: '周期', type: 'text', cat: 'cfg', get: (r) => PERIOD_TEXT[r.plan.period] || '—' },
+  { k: 'consumeRate', label: '消耗倍率', type: 'num', cat: 'cfg', get: (r) => r.plan.consumeRate, title: '名义用 1M 按 X 计费（如非高峰 5 折扣计费填 0.5）' },
+  { k: 'priceRate', label: '价格倍率', type: 'num', cat: 'cfg', get: (r) => r.plan.priceRate, title: '名义价格 × 该倍率 = 实际价格（如 2 折渠道填 0.2）' },
+  { k: 'monthlyCost', label: '月均成本(元)', calc: 'monthlyCost', money: true, cat: 'gen' },
+  { k: 'usageM', label: '用量M(Mtok)', type: 'num', usageOnly: true, cat: 'cfg', get: (r) => r.plan.mode === 'usage' ? r.plan.usageM?.[r.model.id] : null, title: '用量制套餐：该模型单周期可用量，行内「改M」维护' },
+  { k: 'quota', label: '套餐内额度', type: 'num', quotaOnly: true, cat: 'cfg', get: (r) => r.plan.quota, title: '额度制套餐：按套餐内计价币种填写' },
+  { k: 'priceIn', label: '输入价', type: 'num', cat: 'cfg', get: (r) => r.model.priceIn, title: '每 Mtok，与额度同币种' },
+  { k: 'priceOut', label: '输出价', type: 'num', cat: 'cfg', get: (r) => r.model.priceOut, title: '每 Mtok，与额度同币种' },
+  { k: 'priceCache', label: '缓存价', type: 'num', cat: 'cfg', get: (r) => r.model.priceCache, title: '缓存命中每 Mtok，与额度同币种' },
+  { k: 'blended', label: '综合单价', calc: 'blended', cat: 'gen', title: '按全局混合比折算的每 Mtok 综合价' },
+  { k: 'effectiveMtoks', label: '月均有效(亿tok)', calc: 'effectiveMtoks', cat: 'gen', title: '有效量摊到每月，单位亿 Token（1 亿 = 100 Mtok）＝ 额度 ÷ (综合单价 × 价格倍率) ÷ 消耗倍率 ÷ 周期月数 ÷ 100' },
+  { k: 'mtoksPerYuan', label: 'Mtoks/元', calc: 'mtoksPerYuan', cat: 'gen', title: '有效Mtoks ÷ 实付金额' },
+];
+const NOTE_COL = { k: 'note', label: '备注', type: 'text', wide: true, cat: 'cfg', get: (r) => r.plan.note };
+const scoreCols = () => scoreSrcs().map((src) => ({
+  k: 'score:' + src, label: src, type: 'num', score: true, cat: 'cfg', src,
+  get: (r) => scoreIndex()[src]?.[r.model.name]
+}));
+const allCols = () => [...BASE_COLS, ...scoreCols(), { k: 'ops', label: '操作', ops: true }, NOTE_COL];
+
+let sortKey = 'mtoksPerYuan', sortDir = 'desc';
+let filters = {}, filterTimer = null, lastFilterKey = null;
+
 function visibleSorted() {
-  let arr = effPlans();
-  if (overlay.hideBuiltin) arr = arr.filter((p) => (p.origin || 'builtin') !== 'builtin');
-  arr = arr.map((p) => ({ p, c: compute(p) }));
+  let arr = rows();
+  if (store.hideBuiltin) arr = arr.filter((r) => !(r.plan.origin === 'builtin' && r.model.origin === 'builtin'));
+  arr = arr.map((r) => ({ r, c: compute(r) }));
+  const sidx = scoreIndex();
   for (const [k, f] of Object.entries(filters)) {
     if (!f) continue;
-    if (TEXT_COLS.includes(k)) {
+    const col = allCols().find((c) => c.k === k);
+    if (!col) continue;
+    if (col.type === 'text') {
       const needle = String(f).toLowerCase();
-      arr = arr.filter((x) => String(x.p[k] ?? '').toLowerCase().includes(needle));
-    } else if (k.startsWith('score:')) {
-      const src = k.slice(6), min = parseFloat(f);
-      if (isFinite(min)) arr = arr.filter((x) => { const v = effScores()[src]?.[x.p.model]; return typeof v === 'number' && v >= min; });
+      arr = arr.filter((x) => String(col.get(x.r) ?? '').toLowerCase().includes(needle));
     } else {
       const min = parseFloat(f);
-      if (isFinite(min)) arr = arr.filter((x) => { const v = CALC.includes(k) ? x.c[k] : x.p[k]; return typeof v === 'number' && isFinite(v) && v >= min; });
+      if (isFinite(min)) arr = arr.filter((x) => { const v = col.score ? sidx[k.slice(6)]?.[x.r.model.name] : col.get(x.r); return typeof v === 'number' && isFinite(v) && v >= min; });
     }
   }
-  const scoresNow = effScores();
   const dir = sortDir === 'asc' ? 1 : -1;
-  const val = (x) => sortKey.startsWith('score:') ? scoresNow[sortKey.slice(6)]?.[x.p.model]
-    : CALC.includes(sortKey) ? x.c[sortKey] : x.p[sortKey];
+  const col = allCols().find((c) => c.k === sortKey);
+  const val = (x) => col?.score ? sidx[sortKey.slice(6)]?.[x.r.model.name] : col?.calc ? x.c[sortKey] : col?.get(x.r);
   arr.sort((a, b) => {
     const va = val(a), vb = val(b);
     const an = typeof va === 'number' && isFinite(va), bn = typeof vb === 'number' && isFinite(vb);
@@ -347,31 +325,35 @@ function visibleSorted() {
   return arr;
 }
 
-const numInput = (v) => `<input type="number" step="any" value="${v == null ? '' : v}">`;
-
-function rowHtml(p, c, cols) {
-  let h = `<tr data-id="${esc(p.id)}" data-origin="${esc(p.origin || 'builtin')}">`;
+function rowHtml(x, cols) {
+  const { r, c } = x;
+  let h = `<tr data-key="${esc(r.key)}">`;
   for (const col of cols) {
-    const stickyCls = col.s !== undefined ? ' s' + col.s : '';
-    if (col.k === '_del') { h += `<td class="delcell"><button class="del" title="删除该行">删</button></td>`; continue; }
+    const cls = [col.cat ? 'cat-' + col.cat : '', col.s !== undefined ? 's' + col.s : ''].filter(Boolean).join(' ');
+    const clsAttr = cls ? ` class="${cls}"` : '';
+    if (col.ops) {
+      h += r.plan.mode === 'usage'
+        ? `<td class="opscell"><button class="del" data-editm="${esc(r.key)}" title="修改该行用量M">改M</button></td>`
+        : `<td class="opscell"></td>`;
+      continue;
+    }
     if (col.score) {
-      const v = effScores()[col.src]?.[p.model];
-      h += `<td class="scorecell${stickyCls}" data-k="${esc(col.k)}">${numInput(v ?? null)}</td>`;
+      const v = col.get(r);
+      h += `<td class="calc${cls ? ' ' + cls : ''}" data-k="${esc(col.k)}" data-v="${typeof v === 'number' ? v : ''}">${fmt(v)}</td>`;
       continue;
     }
     if (col.calc) {
-      const na = col.modeOnly && p.mode !== col.modeOnly;
-      const v = na ? null : c[col.k];
-      h += `<td class="calc k-${col.k}${stickyCls}" data-k="${col.k}" data-v="${v == null ? '' : v}">${na ? '<span class="na">—</span>' : esc(fmt(v, col.money))}</td>`;
+      const v = c[col.k];
+      h += `<td class="calc k-${col.k}${cls ? ' ' + cls : ''}" data-k="${col.k}" data-v="${v == null ? '' : v}">${esc(fmt(v, col.money))}</td>`;
       continue;
     }
-    if (col.modeOnly && p.mode !== col.modeOnly) { h += `<td${stickyCls ? ` class="${stickyCls.trim()}"` : ''}><span class="na">—</span></td>`; continue; }
-    if (col.type === 'select') {
-      h += `<td${stickyCls ? ` class="${stickyCls.trim()}"` : ''} data-k="${col.k}"><select>${col.opts.map(([v, l]) => `<option value="${v}"${p[col.k] === v ? ' selected' : ''}>${l}</option>`).join('')}</select></td>`;
+    const v = col.get(r);
+    if (col.usageOnly && r.plan.mode !== 'usage' || col.quotaOnly && r.plan.mode !== 'quota') {
+      h += `<td${clsAttr}><span class="na">—</span></td>`;
       continue;
     }
-    if (col.type === 'num') { h += `<td${stickyCls ? ` class="${stickyCls.trim()}"` : ''} data-k="${col.k}">${numInput(p[col.k])}</td>`; continue; }
-    h += `<td class="${col.wide ? 'wide' : ''}${stickyCls}" data-k="${col.k}"><input type="text" value="${esc(p[col.k] ?? '')}"></td>`;
+    const text = col.type === 'num' ? fmt(v) : esc(v ?? '—');
+    h += `<td${clsAttr} data-k="${esc(col.k)}">${text}</td>`;
   }
   return h + '</tr>';
 }
@@ -380,26 +362,27 @@ function render() {
   const cols = allCols();
   let h = '<thead><tr>';
   for (const c of cols) {
-    if (c.k === '_del') { h += '<th class="delcol"></th>'; continue; }
-    const sticky = c.s !== undefined ? ` class="s${c.s}"` : '';
+    if (c.ops) { h += '<th class="opscell"></th>'; continue; }
+    const cls = [c.cat ? 'cat-' + c.cat : '', c.s !== undefined ? 's' + c.s : ''].filter(Boolean).join(' ');
+    const clsAttr = cls ? ` class="${cls}"` : '';
     const arr = sortKey === c.k ? `<span class="arr">${sortDir === 'asc' ? '↑' : '↓'}</span>` : '';
-    const delsrc = c.score ? `<button class="delsrc" data-src="${esc(c.src)}" title="删除该评分源">删</button>` : '';
+    const delsrc = c.score ? `<button class="del" data-delsrc="${esc(c.src)}" title="删除该评分源的全部评分">删</button>` : '';
     const tip = c.title ? ` title="${esc(c.title)}"` : '';
-    h += `<th data-k="${esc(c.k)}"${sticky}${tip}>${esc(c.label)}${arr}${delsrc}</th>`;
+    h += `<th data-k="${esc(c.k)}"${clsAttr}${tip}>${esc(c.label)}${arr}${delsrc}</th>`;
   }
   h += '</tr><tr class="frow">';
   for (const c of cols) {
-    if (c.k === '_del') { h += '<th class="delcol"></th>'; continue; }
+    if (c.ops) { h += '<th class="opscell"></th>'; continue; }
     const sticky = c.s !== undefined ? ` class="s${c.s}"` : '';
     const f = filters[c.k] || '';
-    if (TEXT_COLS.includes(c.k) || c.calc || c.type === 'num' || c.score)
+    if (c.type === 'text' || c.calc || c.type === 'num')
       h += `<th${sticky}><input data-fk="${esc(c.k)}" value="${esc(f)}" placeholder="${c.type === 'text' ? '包含' : '≥'}"></th>`;
     else h += `<th${sticky}></th>`;
   }
   h += '</tr></thead><tbody>';
-  const rows = visibleSorted();
-  if (!rows.length) h += `<tr><td class="empty" colspan="${cols.length}">${overlay.hideBuiltin ? '没有你自己录入的行，点右上角"添加套餐行"' : '无匹配行'}</td></tr>`;
-  for (const { p, c } of rows) h += rowHtml(p, c, cols);
+  const list = visibleSorted();
+  if (!list.length) h += `<tr><td class="empty" colspan="${cols.length}">${store.hideBuiltin ? '没有符合条件的行（内置行已隐藏，可在「管理数据」里添加自己的平台/套餐/模型）' : '暂无数据，点右上角「管理数据」添加平台、模型与套餐'}</td></tr>`;
+  for (const x of list) h += rowHtml(x, cols);
   h += '</tbody>';
   tbl.innerHTML = h;
   if (lastFilterKey) {
@@ -410,11 +393,11 @@ function render() {
 }
 
 function updateComputed() {
-  const byId = new Map(effPlans().map((p) => [p.id, p]));
-  for (const tr of tbl.querySelectorAll('tbody tr[data-id]')) {
-    const p = byId.get(tr.dataset.id);
-    if (!p) continue;
-    const c = compute(p);
+  const byKey = new Map(rows().map((r) => [r.key, r]));
+  for (const tr of tbl.querySelectorAll('tbody tr[data-key]')) {
+    const r = byKey.get(tr.dataset.key);
+    if (!r) continue;
+    const c = compute(r);
     for (const k of CALC) {
       const cell = tr.querySelector(`td.calc.k-${k}`);
       if (!cell) continue;
@@ -445,15 +428,21 @@ function showBanner(errs) {
   banner.classList.remove('hidden');
 }
 
-// ---------- 事件 ----------
+// ---------- 主表事件 ----------
 
 tbl.addEventListener('click', (e) => {
-  const delsrc = e.target.closest('.delsrc');
-  if (delsrc) { deleteScoreSource(delsrc.dataset.src); markDirty(); render(); return; }
-  const del = e.target.closest('button.del');
-  if (del) { deleteRow(del.closest('tr[data-id]').dataset.id); markDirty(); render(); return; }
+  const delsrc = e.target.closest('[data-delsrc]');
+  if (delsrc) {
+    const src = delsrc.dataset.delsrc;
+    if (!confirm(`删除评分源「${src}」的全部评分？`)) return;
+    DS().scores = (DS().scores || []).filter((x) => x.src !== src);
+    markModified(); persist(); render(); renderMgmtScores();
+    return;
+  }
+  const editm = e.target.closest('[data-editm]');
+  if (editm) { openMiniM(editm.dataset.editm); return; }
   const th = e.target.closest('thead th[data-k]');
-  if (th && th.dataset.k !== '_del') {
+  if (th && th.dataset.k !== 'ops') {
     const k = th.dataset.k;
     if (sortKey === k) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
     else { sortKey = k; const col = allCols().find((c) => c.k === k); sortDir = col?.type === 'text' ? 'asc' : 'desc'; }
@@ -468,90 +457,31 @@ tbl.addEventListener('input', (e) => {
     lastFilterKey = t.dataset.fk;
     clearTimeout(filterTimer);
     filterTimer = setTimeout(() => render(), 150);
-    return;
   }
-  const td = t.closest('td[data-k]');
-  if (!td || td.classList.contains('calc')) return;
-  const tr = t.closest('tr[data-id]');
-  const loc = locateRow(tr?.dataset.id);
-  if (!loc) return;
-  const k = td.dataset.k;
-  if (k.startsWith('score:')) { setScore(k.slice(6), loc.obj.model, t.value.trim()); markDirty(); return; }
-  if (t.tagName === 'SELECT') return;
-  let v;
-  if (t.type === 'number') v = t.value === '' ? null : Number(t.value);
-  else v = t.value;
-  setRowField(loc, k, v);
-  markDirty();
-  if (t.type === 'number') updateComputed();
 });
 
-tbl.addEventListener('change', (e) => {
-  const t = e.target;
-  const td = t.closest('td[data-k]');
-  if (!td) return;
-  const loc = locateRow(t.closest('tr[data-id]')?.dataset.id);
-  if (!loc) return;
-  const k = td.dataset.k;
-  if (t.tagName === 'SELECT') {
-    setRowField(loc, k, t.value);
-    markDirty();
-    if (k === 'mode') render(); else updateComputed();
-    return;
-  }
-  if (k === 'model') render();
-});
+// ---------- 顶栏 ----------
 
 for (const k of ['inputRatio', 'cacheHitRate', 'outputRatio']) {
   $('#g-' + k).addEventListener('input', (e) => {
-    setGlobal(k, e.target.value === '' ? null : Number(e.target.value));
-    markDirty();
-    updateComputed();
+    DS().global[k] = e.target.value === '' ? null : Number(e.target.value);
+    markModified(); markDirty(); updateComputed();
   });
 }
 
 $('#hideBuiltin').addEventListener('change', (e) => {
-  overlay.hideBuiltin = e.target.checked;
-  markDirty();
-  render();
-});
-
-$('#btnAddPlan').addEventListener('click', () => {
-  addRow({ id: crypto.randomUUID(), origin: 'custom', platform: '', plan: '', model: '', mode: 'quota', price: null, period: 'month', usageM: null, quota: null, priceIn: null, priceOut: null, priceCache: null, consumeRate: 1, priceRate: 1, note: '' });
-  markDirty();
-  render();
-});
-
-$('#btnAddSource').addEventListener('click', () => {
-  const el = $('#newSource');
-  const name = el.value.trim();
-  if (!name) return;
-  if (overlay.fullData) { if (!overlay.fullData.scores[name]) overlay.fullData.scores[name] = {}; }
-  else if (!overlay.customSources[name] && !BUILTIN.scores?.[name]) overlay.customSources[name] = {};
-  else if (BUILTIN.scores?.[name] && !overlay.deletedSources.includes(name)) { el.value = ''; return; }
-  else if (overlay.deletedSources.includes(name)) overlay.deletedSources = overlay.deletedSources.filter((s) => s !== name);
-  el.value = '';
-  markDirty();
-  render();
+  store.hideBuiltin = e.target.checked;
+  markDirty(); render();
 });
 
 $('#btnRestore').addEventListener('click', () => {
-  if (!confirm('将清空浏览器本地保存的全部修改（含自定义行和导入的数据），恢复为内置数据。确定？')) return;
-  overlay = freshOverlay();
-  persist();
-  init();
-  showBanner([]);
+  if (!confirm('将丢弃浏览器本地保存的全部维护内容（含导入的数据），恢复为内置种子数据。确定？')) return;
+  store = seedStore();
+  persist(); init(); showBanner([]);
 });
 
 $('#btnExport').addEventListener('click', () => {
-  const data = {
-    kind: 'plan-compare-data',
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    global: effGlobal(),
-    plans: effPlans().map((p) => ({ ...p, origin: p.origin || 'builtin' })),
-    scores: effScores()
-  };
+  const data = { kind: 'plan-compare-data', format: 2, exportedAt: new Date().toISOString(), global: DS().global, platforms: DS().platforms, scores: DS().scores };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -560,7 +490,6 @@ $('#btnExport').addEventListener('click', () => {
   URL.revokeObjectURL(a.href);
 });
 
-$('#btnImport').addEventListener('click', () => $('#importFile').click());
 $('#importFile').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   e.target.value = '';
@@ -570,40 +499,236 @@ $('#importFile').addEventListener('change', async (e) => {
     const problems = [];
     if (!data || typeof data !== 'object') problems.push('根节点必须是对象');
     else {
-      if (!Array.isArray(data.plans)) problems.push('缺少 plans 数组');
+      if (!Array.isArray(data.platforms)) problems.push('缺少 platforms 数组');
       if (!data.global || typeof data.global !== 'object' || Array.isArray(data.global)) problems.push('缺少 global 对象');
-      if (data.scores !== undefined && (typeof data.scores !== 'object' || data.scores === null || Array.isArray(data.scores))) problems.push('scores 必须是对象');
+      if (!Array.isArray(data.scores)) problems.push('缺少 scores 数组');
+      for (const p of data.platforms || [])
+        if (!p || !p.id || !Array.isArray(p.models) || !Array.isArray(p.plans)) { problems.push('platforms 条目缺少 id/models/plans'); break; }
     }
     if (problems.length) throw new Error(problems.join('；'));
-    data.scores ??= {};
-    for (const p of data.plans) { p.id ??= crypto.randomUUID(); p.origin ??= 'builtin'; }
-    overlay = { ...freshOverlay(), fullData: data };
-    persist();
-    init();
-    showBanner([]);
+    store = { seedVersion: BUILTIN.version, modified: true, imported: true, hideBuiltin: store.hideBuiltin, data: { global: data.global, platforms: data.platforms, scores: data.scores } };
+    persist(); init(); showBanner([]);
   } catch (err) {
     showBanner(['导入失败：' + err.message]);
   }
 });
 
+// ---------- 管理数据弹窗 ----------
+
+let mgmtSel = null;
+
+$('#btnMgmt').addEventListener('click', () => {
+  $('#mgmtOverlay').classList.remove('hidden');
+  if (!mgmtSel && DS().platforms.length) mgmtSel = DS().platforms[0].id;
+  renderMgmt();
+});
+$('#mgmtClose').addEventListener('click', closeMgmt);
+function closeMgmt() { $('#mgmtOverlay').classList.add('hidden'); $('#miniOverlay').classList.add('hidden'); }
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { closeMgmt(); }
+});
+
+$('#mgmtOverlay').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if (tab) {
+    document.querySelectorAll('#mgmtOverlay .tab').forEach((t) => t.classList.toggle('active', t === tab));
+    $('#tab-plans').classList.toggle('hidden', tab.dataset.tab !== 'plans');
+    $('#tab-scores').classList.toggle('hidden', tab.dataset.tab !== 'scores');
+    return;
+  }
+  const li = e.target.closest('li[data-pid]');
+  if (li && !e.target.closest('button')) { mgmtSel = li.dataset.pid; renderMgmt(); return; }
+  const delPlat = e.target.closest('[data-delplatform]');
+  if (delPlat) {
+    const p = DS().platforms.find((x) => x.id === delPlat.dataset.delplatform);
+    if (p && confirm(`删除平台「${p.name}」及其全部模型、套餐？`)) {
+      DS().platforms = DS().platforms.filter((x) => x.id !== p.id);
+      if (mgmtSel === p.id) mgmtSel = DS().platforms[0]?.id || null;
+      markModified(); persist(); renderMgmt(); render();
+    }
+    return;
+  }
+  if (e.target.closest('#btnAddPlatform')) {
+    const p = { id: uuid(), name: '新平台', origin: 'custom', models: [], plans: [] };
+    DS().platforms.push(p);
+    mgmtSel = p.id;
+    markModified(); persist(); renderMgmt(); render();
+    return;
+  }
+  if (e.target.closest('[data-add="model"]')) {
+    const p = DS().platforms.find((x) => x.id === mgmtSel);
+    if (p) { p.models.push({ id: uuid(), name: '', priceIn: null, priceOut: null, priceCache: null, note: '', origin: 'custom' }); markModified(); persist(); renderMgmt(); render(); }
+    return;
+  }
+  const delModel = e.target.closest('[data-delmodel]');
+  if (delModel) {
+    const p = DS().platforms.find((x) => x.id === mgmtSel);
+    if (p) { p.models = p.models.filter((m) => m.id !== delModel.dataset.delmodel); markModified(); persist(); renderMgmt(); render(); }
+    return;
+  }
+  if (e.target.closest('[data-add="plan"]')) {
+    const p = DS().platforms.find((x) => x.id === mgmtSel);
+    if (p) { p.plans.push({ id: uuid(), name: '', price: null, period: 'month', mode: 'quota', quota: null, consumeRate: 1, priceRate: 1, note: '', origin: 'custom' }); markModified(); persist(); renderMgmt(); render(); }
+    return;
+  }
+  const delPlan = e.target.closest('[data-delplan]');
+  if (delPlan) {
+    const p = DS().platforms.find((x) => x.id === mgmtSel);
+    if (p) { p.plans = p.plans.filter((pl) => pl.id !== delPlan.dataset.delplan); markModified(); persist(); renderMgmt(); render(); }
+    return;
+  }
+  const delScore = e.target.closest('[data-delscore]');
+  if (delScore) {
+    const i = Number(delScore.dataset.delscore);
+    DS().scores.splice(i, 1);
+    markModified(); persist(); renderMgmtScores(); render();
+    return;
+  }
+  if (e.target.closest('#btnAddScoreRow')) {
+    const last = DS().scores[DS().scores.length - 1];
+    DS().scores.push({ src: last?.src || '', model: '', value: null });
+    markModified(); persist(); renderMgmtScores(); render();
+  }
+});
+
+// 弹窗内字段编辑（input/change 统一委托）
+$('#mgmtOverlay').addEventListener('input', (e) => {
+  const t = e.target;
+  const scope = t.dataset.scope;
+  if (!scope) return;
+  const num = t.type === 'number';
+  const v = num ? (t.value === '' ? null : Number(t.value)) : t.value;
+  if (scope === 'platform') {
+    const p = DS().platforms.find((x) => x.id === t.dataset.id);
+    if (p) { p.name = t.value; markModified(); markDirty(); }
+  } else if (scope === 'model') {
+    const p = DS().platforms.find((x) => x.id === mgmtSel);
+    const m = p?.models.find((x) => x.id === t.dataset.id);
+    if (m) { m[t.dataset.k] = v; markModified(); markDirty(); if (t.dataset.k === 'name' || num) syncSoon(); else syncSoon(); }
+  } else if (scope === 'plan') {
+    const p = DS().platforms.find((x) => x.id === mgmtSel);
+    const pl = p?.plans.find((x) => x.id === t.dataset.id);
+    if (pl) { pl[t.dataset.k] = v; markModified(); markDirty(); syncSoon(); }
+  } else if (scope === 'score') {
+    const entry = DS().scores[Number(t.dataset.i)];
+    if (entry) {
+      entry[t.dataset.k] = num ? (t.value === '' ? null : Number(t.value)) : t.value;
+      markModified(); markDirty(); syncSoon();
+    }
+  }
+});
+
+$('#mgmtOverlay').addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.dataset.scope === 'plan' && t.tagName === 'SELECT') {
+    const p = DS().platforms.find((x) => x.id === mgmtSel);
+    const pl = p?.plans.find((x) => x.id === t.dataset.id);
+    if (pl) { pl[t.dataset.k] = t.value; markModified(); persist(); renderMgmt(); render(); }
+  }
+});
+
+let syncTimer = null;
+const syncSoon = () => { clearTimeout(syncTimer); syncTimer = setTimeout(() => render(), 200); };
+
+function renderMgmt() {
+  const ul = $('#platformList');
+  ul.innerHTML = DS().platforms.map((p) =>
+    `<li data-pid="${esc(p.id)}" class="${p.id === mgmtSel ? 'sel' : ''}"><span>${esc(p.name || '(未命名)')}</span><button class="del" data-delplatform="${esc(p.id)}" title="删除平台">删</button></li>`
+  ).join('') || '<li class="hint">暂无平台</li>';
+  const p = DS().platforms.find((x) => x.id === mgmtSel);
+  $('#platformDetail').innerHTML = p ? detailHtml(p) : '<div class="hint">左侧选择或添加平台</div>';
+  renderMgmtScores();
+}
+
+function detailHtml(p) {
+  const modelRows = p.models.map((m) => `<tr>
+    <td><input data-scope="model" data-id="${esc(m.id)}" data-k="name" value="${esc(m.name ?? '')}" placeholder="模型名"></td>
+    <td class="num"><input type="number" step="any" data-scope="model" data-id="${esc(m.id)}" data-k="priceIn" value="${m.priceIn ?? ''}"></td>
+    <td class="num"><input type="number" step="any" data-scope="model" data-id="${esc(m.id)}" data-k="priceOut" value="${m.priceOut ?? ''}"></td>
+    <td class="num"><input type="number" step="any" data-scope="model" data-id="${esc(m.id)}" data-k="priceCache" value="${m.priceCache ?? ''}"></td>
+    <td><input data-scope="model" data-id="${esc(m.id)}" data-k="note" value="${esc(m.note ?? '')}" placeholder="说明（抵扣系数等）"></td>
+    <td class="op"><button class="del" data-delmodel="${esc(m.id)}">删</button></td>
+  </tr>`).join('');
+  const planBoxes = p.plans.map((pl) => `<div class="planbox">
+    <div class="planrow">
+      <label>名称 <input class="wname" data-scope="plan" data-id="${esc(pl.id)}" data-k="name" value="${esc(pl.name ?? '')}"></label>
+      <label>购买价(元) <input class="w60" type="number" step="any" data-scope="plan" data-id="${esc(pl.id)}" data-k="price" value="${pl.price ?? ''}"></label>
+      <label>周期 <select data-scope="plan" data-id="${esc(pl.id)}" data-k="period">${['month', 'quarter', 'year'].map((v) => `<option value="${v}"${pl.period === v ? ' selected' : ''}>${PERIOD_TEXT[v]}</option>`).join('')}</select></label>
+      <label>方式 <select data-scope="plan" data-id="${esc(pl.id)}" data-k="mode">${['quota', 'usage'].map((v) => `<option value="${v}"${pl.mode === v ? ' selected' : ''}>${v === 'quota' ? '额度制' : '用量制'}</option>`).join('')}</select></label>
+      ${pl.mode === 'quota' ? `<label>套餐内额度 <input class="w60" type="number" step="any" data-scope="plan" data-id="${esc(pl.id)}" data-k="quota" value="${pl.quota ?? ''}"></label>` : ''}
+      <label>消耗倍率 <input class="w60" type="number" step="any" data-scope="plan" data-id="${esc(pl.id)}" data-k="consumeRate" value="${pl.consumeRate ?? 1}"></label>
+      <label>价格倍率 <input class="w60" type="number" step="any" data-scope="plan" data-id="${esc(pl.id)}" data-k="priceRate" value="${pl.priceRate ?? 1}"></label>
+      <button class="del" data-delplan="${esc(pl.id)}" title="删除套餐">删</button>
+    </div>
+    <div class="planrow"><label style="flex:1">备注 <input class="wnote" data-scope="plan" data-id="${esc(pl.id)}" data-k="note" value="${esc(pl.note ?? '')}"></label></div>
+    ${pl.mode === 'usage' ? `<div class="hint">用量制：在主表对应行点「改M」填写各模型可用量</div>` : ''}
+  </div>`).join('');
+  return `
+    <div class="planrow"><label>平台名 <input class="wname" data-scope="platform" data-id="${esc(p.id)}" data-k="name" value="${esc(p.name ?? '')}"></label><span class="hint">该平台 ${p.models.length} 个模型 × ${p.plans.length} 个套餐 = 主表 ${p.models.length * p.plans.length} 行</span></div>
+    <h3>模型价格 <button class="ghost sm" data-add="model">+ 添加模型</button></h3>
+    <table class="mtab"><thead><tr><th>模型名</th><th>输入价</th><th>输出价</th><th>缓存价</th><th>说明</th><th></th></tr></thead><tbody>${modelRows || '<tr><td colspan="6" class="hint">暂无模型，添加后主表才会出现该平台的行</td></tr>'}</tbody></table>
+    <h3>套餐 <button class="ghost sm" data-add="plan">+ 添加套餐</button></h3>
+    ${planBoxes || '<div class="hint">暂无套餐</div>'}
+  `;
+}
+
+function renderMgmtScores() {
+  $('#scoresEditor').innerHTML = (DS().scores || []).map((e2, i) => `<div class="srow">
+    <input data-scope="score" data-i="${i}" data-k="src" value="${esc(e2.src ?? '')}" placeholder="评分源">
+    <input data-scope="score" data-i="${i}" data-k="model" value="${esc(e2.model ?? '')}" placeholder="模型名">
+    <input class="num" type="number" step="any" data-scope="score" data-i="${i}" data-k="value" value="${e2.value ?? ''}">
+    <button class="del" data-delscore="${i}">删</button>
+  </div>`).join('') || '<div class="hint">暂无评分。添加行后填评分源、模型名与分数，主表按评分源分列展示。</div>';
+}
+
+// ---------- 用量M 迷你弹窗 ----------
+
+let miniRow = null;
+function openMiniM(key) {
+  const r = rows().find((x) => x.key === key);
+  if (!r) return;
+  miniRow = r;
+  $('#miniDialog').innerHTML = `
+    <div class="dlghead"><b>修改用量M</b><span class="spacer"></span><button class="ghost sm" data-miniclose>取消</button></div>
+    <div class="hint" style="margin-bottom:8px">${esc(r.platform.name)} / ${esc(r.plan.name)} × ${esc(r.model.name)}（用量制）</div>
+    <div class="planrow"><label>用量M（${PERIOD_TEXT[r.plan.period] || '周期'}可用 Mtok） <input id="miniM" type="number" step="any" value="${r.plan.usageM?.[r.model.id] ?? ''}"></label></div>
+    <div class="planrow"><button id="miniSave" class="primary">保存</button></div>`;
+  $('#miniOverlay').classList.remove('hidden');
+  $('#miniSave').addEventListener('click', () => {
+    const el = $('#miniM');
+    const v = el.value === '' ? null : Number(el.value);
+    (r.plan.usageM ??= {})[r.model.id] = v;
+    markModified(); persist(); render();
+    $('#miniOverlay').classList.add('hidden');
+  });
+}
+$('#miniOverlay').addEventListener('click', (e) => {
+  if (e.target === $('#miniOverlay') || e.target.closest('[data-miniclose]')) $('#miniOverlay').classList.add('hidden');
+});
+
 // ---------- 初始化 ----------
 
 function init() {
-  const g = effGlobal();
+  const g = DS().global;
   for (const k of ['inputRatio', 'cacheHitRate', 'outputRatio']) $('#g-' + k).value = g[k] ?? '';
-  $('#hideBuiltin').checked = !!overlay.hideBuiltin;
-  modeTag.style.display = overlay.fullData ? '' : 'none';
+  $('#hideBuiltin').checked = !!store.hideBuiltin;
+  modeTag.style.display = store.imported ? '' : 'none';
   filters = {};
   lastFilterKey = null;
+  mgmtSel = DS().platforms[0]?.id || null;
   render();
   statusEl.textContent = '数据自动保存于浏览器本地';
   statusEl.className = 'status';
 }
 
-loadOverlay();
-if (!BUILTIN || typeof BUILTIN !== 'object' || !Array.isArray(BUILTIN.plans)) {
-  showBanner(['data.js 未加载或缺少 BUILTIN_DATA/plans，请检查 data.js 是否与 index.html 在同一目录。']);
+store = loadStore();
+if (!BUILTIN || typeof BUILTIN !== 'object' || !Array.isArray(BUILTIN.platforms)) {
+  showBanner(['data.js 未加载或缺少 BUILTIN_DATA/platforms，请检查 data.js 是否与 index.html 在同一目录。']);
 } else {
+  const hints = [];
+  if (updateHint) hints.push(`内置数据已更新到 v${BUILTIN.version}，但本地有你的修改，未自动跟进；需要新内置数据时点「恢复内置默认」。`);
+  if (hints.length) showBanner(hints);
   init();
 }
 </script>
