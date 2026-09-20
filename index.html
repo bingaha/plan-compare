@@ -26,7 +26,6 @@ button{font:inherit;border-radius:6px;cursor:pointer}
 .status{font-size:12px;color:var(--muted)}
 .status.saved{color:var(--best-fg)}
 .toggle{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none}
-.srfile{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 .banner{margin:12px 16px;padding:10px 14px;border:1px solid var(--danger-line);background:var(--danger-bg);color:var(--danger);border-radius:8px}
 .banner ul{margin:6px 0 0;padding-left:18px}
 main{padding:14px 16px}
@@ -97,6 +96,12 @@ thead th.s0,thead th.s1,thead th.s2{z-index:7}
 .srow{display:flex;gap:8px;align-items:center;margin:4px 0}
 .srow input{border-color:var(--line2);flex:1}
 .srow input.num{flex:0 0 90px}
+.iptext{width:100%;min-height:320px;resize:vertical;background:#fff;border:1px solid var(--line2);border-radius:6px;padding:10px;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--text)}
+.iptext:focus{border-color:var(--accent);outline:none}
+.imperr{margin-top:10px;padding:8px 12px;border:1px solid var(--danger-line);background:var(--danger-bg);color:var(--danger);border-radius:8px;font-size:12px;white-space:pre-wrap;max-height:200px;overflow:auto}
+.fmthint{margin:16px 16px 30px;color:transparent;cursor:default}
+.fmthint:hover{color:#b9bfc9}
+.fmthint pre{margin:0;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap}
 </style>
 </head>
 <body>
@@ -108,9 +113,8 @@ thead th.s0,thead th.s1,thead th.s2{z-index:7}
   <label class="toggle" title="隐藏套餐与模型均为内置的行"><input type="checkbox" id="hideBuiltin"> 只看自己录入的</label>
   <button id="btnMgmt" class="ghost">管理数据</button>
   <button id="btnRestore" class="ghost" title="丢弃本地全部维护内容，回到内置种子数据">恢复内置默认</button>
-  <label for="importFile" class="ghost" title="从导出的 JSON 文件恢复数据">导入</label>
+  <button id="btnImport" class="ghost" title="粘贴导出格式的 JSON 恢复数据（严格校验）">导入</button>
   <button id="btnExport" class="ghost" title="把当前全部数据导出为 JSON 文件">导出</button>
-  <input type="file" id="importFile" accept=".json,application/json" class="srfile">
 </header>
 <div id="banner" class="banner hidden"></div>
 <main>
@@ -124,6 +128,58 @@ thead th.s0,thead th.s1,thead th.s2{z-index:7}
   </section>
   <div class="tablewrap"><table class="main" id="tbl"></table></div>
 </main>
+
+<footer id="fmtHint" class="fmthint" title="导入 JSON 格式说明（鼠标悬停显示）">
+<pre>导入 JSON 格式（与「导出」按钮导出的整份数据一致；字段严格校验——多余字段、缺失字段、错误类型、非法取值都会被拒绝，不会导入）
+根节点必须是对象，不能是数组；一行一行的扁平行数据（如旧版格式、表格导出）无法导入，需要先转换成下面的结构。
+
+{
+  "kind": "plan-compare-data",               // 可省略；写了就必须是这个值
+  "format": 2,                               // 可省略；写了就必须是 2
+  "exportedAt": "2026-09-18T09:55:35.264Z",  // 可省略；ISO 时间字符串
+  "global": {                                // 必填；全局用量混合比
+    "inputRatio": 0.99,                      // 输入占比，0~1 的数字
+    "cacheHitRate": 0.95,                    // 缓存命中率，0~1 的数字
+    "outputRatio": 0.01                      // 输出占比，0~1 的数字；inputRatio + outputRatio 应≈1
+  },
+  "platforms": [                             // 必填；平台数组
+    {
+      "id": "p-zai",                         // 非空字符串，全局唯一
+      "name": "智谱 Z.ai",                   // 非空字符串
+      "origin": "builtin",                   // 可省略；"builtin" | "custom"
+      "models": [                            // 必填（可为空数组）；该平台各模型的单价，每 Mtok，与套餐额度同币种
+        {
+          "id": "m-53",                      // 非空字符串，全局唯一
+          "name": "GLM-5.3",                 // 非空字符串；评分列按模型名匹配
+          "priceIn": 690, "priceOut": 2400, "priceCache": 170,   // 各 ≥0 的数字或 null：输入价 / 输出价 / 缓存命中价
+          "note": "抵扣系数等说明",           // 可省略；字符串
+          "origin": "builtin"                // 可省略；"builtin" | "custom"
+        }
+      ],
+      "plans": [                             // 必填（可为空数组）；该平台的套餐
+        {
+          "id": "pl-lite",                   // 非空字符串，全局唯一
+          "name": "V3 Lite",                 // 非空字符串
+          "price": 283.2,                    // ≥0 的数字或 null；人民币实付价
+          "period": "quarter",               // "month" | "quarter" | "year"
+          "mode": "quota",                   // "quota" 额度制 | "usage" 用量制
+          "quota": 128571,                   // mode=quota 用；>0 的数字或 null（用量制可省略），按套餐内计价币种
+          "usageM": { "m-53": 1000 },        // mode=usage 用；键必须是本平台的模型 id，值是 >0 的数字或 null
+          "consumeRate": 2,                  // 可省略；消耗倍率，>0 的数字或 null，缺省按 1
+          "priceRate": 1,                    // 可省略；价格倍率，>0 的数字或 null，缺省按 1
+          "note": "备注",                    // 可省略；字符串
+          "origin": "builtin"                // 可省略；"builtin" | "custom"
+        }
+      ]
+    }
+  ],
+  "scores": [                                // 必填；评分按模型名对应到主表列
+    { "src": "Artificial Analysis", "model": "GLM-5.3", "value": 45 }
+  ]
+}
+
+主表每行 = 平台下的 套餐 × 模型 自动配对，价格与倍率在套餐/模型层只存一份。导入与现有数据合并：global 取导入值；平台按 id、评分按「评分源+模型名」，同者更新、新者追加，现有其他内容保留，并标记为「已修改」。</pre>
+</footer>
 
 <div id="mgmtOverlay" class="overlay hidden">
   <div class="dialog">
@@ -144,6 +200,15 @@ thead th.s0,thead th.s1,thead th.s2{z-index:7}
 
 <div id="miniOverlay" class="overlay hidden">
   <div class="dialog" style="max-width:430px" id="miniDialog"></div>
+</div>
+
+<div id="importOverlay" class="overlay hidden">
+  <div class="dialog" style="max-width:820px">
+    <div class="dlghead"><b>导入 JSON</b><span class="hint">严格校验后与现有数据合并（同 id 更新、新条目追加），不会清掉旧数据</span><span class="spacer"></span><button id="importClose" class="ghost sm">取消</button></div>
+    <textarea id="importText" class="iptext" placeholder="在此粘贴 JSON 文本…" spellcheck="false"></textarea>
+    <div id="importErr" class="imperr hidden"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:10px"><button id="importApply" class="primary">校验并导入</button></div>
+  </div>
 </div>
 
 <script src="data.js"></script>
@@ -490,27 +555,148 @@ $('#btnExport').addEventListener('click', () => {
   URL.revokeObjectURL(a.href);
 });
 
-$('#importFile').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  try {
-    const data = JSON.parse(await file.text());
-    const problems = [];
-    if (!data || typeof data !== 'object') problems.push('根节点必须是对象');
-    else {
-      if (!Array.isArray(data.platforms)) problems.push('缺少 platforms 数组');
-      if (!data.global || typeof data.global !== 'object' || Array.isArray(data.global)) problems.push('缺少 global 对象');
-      if (!Array.isArray(data.scores)) problems.push('缺少 scores 数组');
-      for (const p of data.platforms || [])
-        if (!p || !p.id || !Array.isArray(p.models) || !Array.isArray(p.plans)) { problems.push('platforms 条目缺少 id/models/plans'); break; }
+// ---------- 导入（粘贴 JSON + 严格校验） ----------
+
+const isObj = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
+const isNum = (v) => typeof v === 'number' && isFinite(v);
+const nonEmptyStr = (v) => typeof v === 'string' && v.trim() !== '';
+const numOrNull = (v) => v === null || isNum(v);
+
+function validateImport(data) {
+  const problems = [];
+  const bad = (msg) => problems.push(msg);
+  const extraKeys = (obj, allowed, at) => {
+    for (const k of Object.keys(obj)) if (!allowed.includes(k)) bad(`${at} 多余字段："${k}"`);
+  };
+  const originOk = (v) => v === 'builtin' || v === 'custom';
+
+  if (Array.isArray(data)) { bad('根节点不能是数组：一行一行的扁平行数据不是导入格式。导入需要含 global/platforms/scores 的整份对象，格式见页面最底部灰字说明（鼠标悬停显示），或点「导出」参考。'); return problems; }
+  if (!isObj(data)) { bad('根节点必须是 JSON 对象（导入格式见页面最底部灰字说明，鼠标悬停显示）'); return problems; }
+  extraKeys(data, ['kind', 'format', 'exportedAt', 'global', 'platforms', 'scores'], '根节点');
+  if (data.kind !== undefined && data.kind !== 'plan-compare-data') bad('kind 必须是 "plan-compare-data"');
+  if (data.format !== undefined && data.format !== 2) bad('format 必须是 2');
+  if (data.exportedAt !== undefined && !nonEmptyStr(data.exportedAt)) bad('exportedAt 必须是非空字符串');
+
+  if (!isObj(data.global)) bad('缺少 global 对象');
+  else {
+    extraKeys(data.global, ['inputRatio', 'cacheHitRate', 'outputRatio'], 'global');
+    for (const k of ['inputRatio', 'cacheHitRate', 'outputRatio']) {
+      const v = data.global[k];
+      if (!isNum(v) || v < 0 || v > 1) bad(`global.${k} 必须是 0~1 的数字（当前：${JSON.stringify(v) ?? v}）`);
     }
-    if (problems.length) throw new Error(problems.join('；'));
-    store = { seedVersion: BUILTIN.version, modified: true, imported: true, hideBuiltin: store.hideBuiltin, data: { global: data.global, platforms: data.platforms, scores: data.scores } };
-    persist(); init(); showBanner([]);
-  } catch (err) {
-    showBanner(['导入失败：' + err.message]);
+    if (isNum(data.global.inputRatio) && isNum(data.global.outputRatio) && Math.abs(data.global.inputRatio + data.global.outputRatio - 1) > 0.001)
+      bad('global.inputRatio + global.outputRatio 应≈1');
   }
+
+  if (!Array.isArray(data.platforms)) bad('缺少 platforms 数组');
+  if (!Array.isArray(data.scores)) bad('缺少 scores 数组');
+  if (!Array.isArray(data.platforms) || !Array.isArray(data.scores)) return problems;
+
+  const seenPlat = new Set(), seenModel = new Set(), seenPlan = new Set();
+  data.platforms.forEach((p, pi) => {
+    const at = `platforms[${pi}]`;
+    if (!isObj(p)) { bad(`${at} 不是对象`); return; }
+    extraKeys(p, ['id', 'name', 'models', 'plans', 'origin'], at);
+    if (!nonEmptyStr(p.id)) bad(`${at}.id 必须是非空字符串`);
+    else if (seenPlat.has(p.id)) bad(`${at}.id 重复："${p.id}"`);
+    else seenPlat.add(p.id);
+    if (!nonEmptyStr(p.name)) bad(`${at}.name 必须是非空字符串`);
+    if (p.origin !== undefined && !originOk(p.origin)) bad(`${at}.origin 只能是 "builtin" 或 "custom"`);
+    if (!Array.isArray(p.models)) bad(`${at}.models 必须是数组`);
+    if (!Array.isArray(p.plans)) bad(`${at}.plans 必须是数组`);
+    if (!Array.isArray(p.models) || !Array.isArray(p.plans)) return;
+
+    const modelIds = new Set();
+    p.models.forEach((m, mi) => {
+      const mat = `${at}.models[${mi}]`;
+      if (!isObj(m)) { bad(`${mat} 不是对象`); return; }
+      extraKeys(m, ['id', 'name', 'priceIn', 'priceOut', 'priceCache', 'note', 'origin'], mat);
+      if (!nonEmptyStr(m.id)) bad(`${mat}.id 必须是非空字符串`);
+      else if (seenModel.has(m.id)) bad(`模型 id 全局重复："${m.id}"（${mat}）`);
+      else { seenModel.add(m.id); modelIds.add(m.id); }
+      if (!nonEmptyStr(m.name)) bad(`${mat}.name 必须是非空字符串`);
+      for (const k of ['priceIn', 'priceOut', 'priceCache'])
+        if (!numOrNull(m[k]) || (isNum(m[k]) && m[k] < 0)) bad(`${mat}.${k} 必须是 ≥0 的数字或 null`);
+      if (m.note !== undefined && typeof m.note !== 'string') bad(`${mat}.note 必须是字符串`);
+      if (m.origin !== undefined && !originOk(m.origin)) bad(`${mat}.origin 只能是 "builtin" 或 "custom"`);
+    });
+
+    p.plans.forEach((pl, li) => {
+      const pat = `${at}.plans[${li}]`;
+      if (!isObj(pl)) { bad(`${pat} 不是对象`); return; }
+      extraKeys(pl, ['id', 'name', 'price', 'period', 'mode', 'quota', 'usageM', 'consumeRate', 'priceRate', 'note', 'origin'], pat);
+      if (!nonEmptyStr(pl.id)) bad(`${pat}.id 必须是非空字符串`);
+      else if (seenPlan.has(pl.id)) bad(`套餐 id 全局重复："${pl.id}"（${pat}）`);
+      else seenPlan.add(pl.id);
+      if (!nonEmptyStr(pl.name)) bad(`${pat}.name 必须是非空字符串`);
+      if (!numOrNull(pl.price) || (isNum(pl.price) && pl.price < 0)) bad(`${pat}.price 必须是 ≥0 的数字或 null`);
+      if (pl.period !== 'month' && pl.period !== 'quarter' && pl.period !== 'year') bad(`${pat}.period 必须是 "month" | "quarter" | "year"`);
+      if (pl.mode !== 'quota' && pl.mode !== 'usage') bad(`${pat}.mode 必须是 "quota" | "usage"`);
+      if (pl.quota !== undefined && (!numOrNull(pl.quota) || (isNum(pl.quota) && pl.quota <= 0))) bad(`${pat}.quota 必须是 >0 的数字、null 或省略（用量制套餐可不写）`);
+      for (const k of ['consumeRate', 'priceRate'])
+        if (pl[k] !== undefined && (!numOrNull(pl[k]) || (isNum(pl[k]) && pl[k] <= 0))) bad(`${pat}.${k} 必须是 >0 的数字或 null`);
+      if (pl.usageM !== undefined) {
+        if (!isObj(pl.usageM)) bad(`${pat}.usageM 必须是对象`);
+        else for (const [mk, mv] of Object.entries(pl.usageM)) {
+          if (!modelIds.has(mk)) bad(`${pat}.usageM 的键 "${mk}" 不是该平台的模型 id`);
+          if (!numOrNull(mv) || (isNum(mv) && mv <= 0)) bad(`${pat}.usageM["${mk}"] 必须是 >0 的数字或 null`);
+        }
+      }
+      if (pl.note !== undefined && typeof pl.note !== 'string') bad(`${pat}.note 必须是字符串`);
+      if (pl.origin !== undefined && !originOk(pl.origin)) bad(`${pat}.origin 只能是 "builtin" 或 "custom"`);
+    });
+  });
+
+  data.scores.forEach((s, si) => {
+    const sat = `scores[${si}]`;
+    if (!isObj(s)) { bad(`${sat} 不是对象`); return; }
+    extraKeys(s, ['src', 'model', 'value'], sat);
+    if (!nonEmptyStr(s.src)) bad(`${sat}.src 必须是非空字符串`);
+    if (!nonEmptyStr(s.model)) bad(`${sat}.model 必须是非空字符串`);
+    if (!numOrNull(s.value)) bad(`${sat}.value 必须是数字或 null`);
+  });
+  return problems;
+}
+
+$('#btnImport').addEventListener('click', () => {
+  $('#importErr').classList.add('hidden');
+  $('#importOverlay').classList.remove('hidden');
+  $('#importText').focus();
+});
+$('#importClose').addEventListener('click', () => $('#importOverlay').classList.add('hidden'));
+$('#importOverlay').addEventListener('click', (e) => {
+  if (e.target === $('#importOverlay')) $('#importOverlay').classList.add('hidden');
+});
+$('#importApply').addEventListener('click', () => {
+  const errEl = $('#importErr');
+  let data;
+  try {
+    data = JSON.parse($('#importText').value);
+  } catch (e) {
+    errEl.textContent = 'JSON 解析失败：' + e.message;
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const problems = validateImport(data);
+  if (problems.length) {
+    errEl.textContent = `校验未通过（${problems.length} 处）：\n` + problems.map((s, i) => `${i + 1}. ${s}`).join('\n');
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const cur = DS();
+  const platforms = [...cur.platforms];
+  for (const p of data.platforms) {
+    const i = platforms.findIndex((x) => x.id === p.id);
+    if (i >= 0) platforms[i] = p; else platforms.push(p);
+  }
+  const scores = [...cur.scores];
+  for (const s of data.scores) {
+    const i = scores.findIndex((x) => x.src === s.src && x.model === s.model);
+    if (i >= 0) scores[i] = s; else scores.push(s);
+  }
+  store = { seedVersion: BUILTIN.version, modified: true, imported: true, hideBuiltin: store.hideBuiltin, data: { global: { ...data.global }, platforms, scores } };
+  persist(); init(); showBanner([]);
+  $('#importOverlay').classList.add('hidden');
 });
 
 // ---------- 管理数据弹窗 ----------
@@ -526,7 +712,7 @@ $('#mgmtClose').addEventListener('click', closeMgmt);
 function closeMgmt() { $('#mgmtOverlay').classList.add('hidden'); $('#miniOverlay').classList.add('hidden'); }
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') { closeMgmt(); }
+  if (e.key === 'Escape') { closeMgmt(); $('#importOverlay').classList.add('hidden'); }
 });
 
 $('#mgmtOverlay').addEventListener('click', (e) => {
@@ -564,7 +750,12 @@ $('#mgmtOverlay').addEventListener('click', (e) => {
   const delModel = e.target.closest('[data-delmodel]');
   if (delModel) {
     const p = DS().platforms.find((x) => x.id === mgmtSel);
-    if (p) { p.models = p.models.filter((m) => m.id !== delModel.dataset.delmodel); markModified(); persist(); renderMgmt(); render(); }
+    if (p) {
+      const mid = delModel.dataset.delmodel;
+      p.models = p.models.filter((m) => m.id !== mid);
+      for (const pl of p.plans) if (pl.usageM) delete pl.usageM[mid];
+      markModified(); persist(); renderMgmt(); render();
+    }
     return;
   }
   if (e.target.closest('[data-add="plan"]')) {
