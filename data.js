@@ -9,10 +9,12 @@
 // Goat 套餐定名 Goat DS-FLASH（月付 72.5 元、额度 40 元）。
 // v6：新增 R4coder 平台——deepseek-flash 5 美元套餐（¥36/月，额度 $30 按美元标价扣，消耗倍率 2，
 // 模型价 0.3/1.2/0.006 $/Mtok）。
-// v7：新增 阶跃星辰StepFun 平台——Credit 月池全模型共享、无逐模型 API 价，故按用量制建模：
-// 单模型「Step 全系列」承载共享池，usageM 填该套餐单周期总 Credit（Mtok）；加油包 30 天按 1 月折算。
+// v7：新增 阶跃星辰StepFun 平台（Credit 月池全模型共享）。
+// v8：StepFun 改为逐模型建模——拿到三个模型的 API 原价（输入命中/未命中/输出，元/Mtok）后，
+// 平台拆为 step-5-preview / step-3.7-flash / step-3.5-flash，套餐改额度制，额度 = 周期内 Credit 池
+// （1M Credit = 1元，季/年付为该周期累计发放量），综合单价按全局混合比公式现算，与官方口径一致。
 window.BUILTIN_DATA = {
-  version: 7,
+  version: 8,
   global: {
     inputRatio: 0.99,
     cacheHitRate: 0.95,
@@ -83,23 +85,25 @@ window.BUILTIN_DATA = {
       id: "p-stepfun",
       name: "阶跃星辰StepFun",
       models: [
-        { id: "m-step-all", name: "Step 全系列", priceIn: null, priceOut: null, priceCache: null, note: "Credit 月池为全模型共享；覆盖 step-5-preview、step-3.7-flash、step-3.5-flash-2603、step-router-v1、语音系列。" }
+        { id: "m-step-5", name: "step-5-preview", priceIn: 7.00, priceOut: 20.00, priceCache: 0.35, note: "" },
+        { id: "m-step-37f", name: "step-3.7-flash", priceIn: 1.35, priceOut: 8.10, priceCache: 0.27, note: "" },
+        { id: "m-step-35f", name: "step-3.5-flash", priceIn: 0.70, priceOut: 2.10, priceCache: 0.14, note: "" }
       ],
       plans: [
-        { id: "pl-step-mini", name: "Step Plan Flash Mini", price: 49, period: "month", mode: "usage", usageM: { "m-step-all": 400 }, consumeRate: 1, priceRate: 1, note: "入门体验；400M Credit/月，月末清零；Studio额外赠送40%创作额度；无优先速率；支持全部旗舰模型、MCP StepSearch" },
-        { id: "pl-step-plus", name: "Step Plan Flash Plus", price: 99, period: "month", mode: "usage", usageM: { "m-step-all": 1600 }, consumeRate: 1, priceRate: 1, note: "日常提效；1600M Credit/月，月末清零；Studio额外赠送40%创作额度；含优先API速率、优先技术支持；支持全部旗舰模型、MCP StepSearch" },
-        { id: "pl-step-pro", name: "Step Plan Flash Pro", price: 199, period: "month", mode: "usage", usageM: { "m-step-all": 8000 }, consumeRate: 1, priceRate: 1, note: "高频深度使用；8000M Credit/月，月末清零；Studio额外赠送40%创作额度；含优先API速率、优先技术支持；支持全部旗舰模型、MCP StepSearch" },
-        { id: "pl-step-max", name: "Step Plan Flash Max", price: 699, period: "month", mode: "usage", usageM: { "m-step-all": 40000 }, consumeRate: 1, priceRate: 1, note: "高强度专业使用；40000M Credit/月，月末清零；Studio额外赠送40%创作额度；含优先API速率、优先技术支持；支持全部旗舰模型、MCP StepSearch" },
-        { id: "pl-step-mini-q", name: "Step Plan Flash Mini-季付", price: 129, period: "quarter", mode: "usage", usageM: { "m-step-all": 1200 }, consumeRate: 1, priceRate: 1, note: "季付一次性129元，每月发放400M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
-        { id: "pl-step-plus-q", name: "Step Plan Flash Plus-季付", price: 269, period: "quarter", mode: "usage", usageM: { "m-step-all": 4800 }, consumeRate: 1, priceRate: 1, note: "季付一次性269元，每月发放1600M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
-        { id: "pl-step-pro-q", name: "Step Plan Flash Pro-季付", price: 539, period: "quarter", mode: "usage", usageM: { "m-step-all": 24000 }, consumeRate: 1, priceRate: 1, note: "季付一次性539元，每月发放8000M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
-        { id: "pl-step-max-q", name: "Step Plan Flash Max-季付", price: 1889, period: "quarter", mode: "usage", usageM: { "m-step-all": 120000 }, consumeRate: 1, priceRate: 1, note: "季付一次性1889元，每月发放40000M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
-        { id: "pl-step-mini-y", name: "Step Plan Flash Mini-年付", price: 456, period: "year", mode: "usage", usageM: { "m-step-all": 4800 }, consumeRate: 1, priceRate: 1, note: "年付一次性456元，每月发放400M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
-        { id: "pl-step-plus-y", name: "Step Plan Flash Plus-年付", price: 936, period: "year", mode: "usage", usageM: { "m-step-all": 19200 }, consumeRate: 1, priceRate: 1, note: "年付一次性936元，每月发放1600M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
-        { id: "pl-step-pro-y", name: "Step Plan Flash Pro-年付", price: 1860, period: "year", mode: "usage", usageM: { "m-step-all": 96000 }, consumeRate: 1, priceRate: 1, note: "年付一次性1860元，每月发放8000M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
-        { id: "pl-step-max-y", name: "Step Plan Flash Max-年付", price: 6666, period: "year", mode: "usage", usageM: { "m-step-all": 480000 }, consumeRate: 1, priceRate: 1, note: "年付一次性6666元，每月发放40000M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
-        { id: "pl-step-oil-s", name: "Step Plan 小油包(加油包)", price: 49, period: "month", mode: "usage", usageM: { "m-step-all": 400 }, consumeRate: 1, priceRate: 1, note: "仅订阅用户可购买；400M Credit；独立30天有效期，不跟随套餐月池周期（周期按30天≈1月折算）" },
-        { id: "pl-step-oil-l", name: "Step Plan 大油包(加油包)", price: 99, period: "month", mode: "usage", usageM: { "m-step-all": 1600 }, consumeRate: 1, priceRate: 1, note: "仅订阅用户可购买；1600M Credit；独立30天有效期，不跟随套餐月池周期（周期按30天≈1月折算）" }
+        { id: "pl-step-mini", name: "Step Plan Flash Mini", price: 49, period: "month", mode: "quota", quota: 400, consumeRate: 1, priceRate: 1, note: "入门体验；400M Credit/月，月末清零；Studio额外赠送40%创作额度；无优先速率；支持全部旗舰模型、MCP StepSearch" },
+        { id: "pl-step-plus", name: "Step Plan Flash Plus", price: 99, period: "month", mode: "quota", quota: 1600, consumeRate: 1, priceRate: 1, note: "日常提效；1600M Credit/月，月末清零；Studio额外赠送40%创作额度；含优先API速率、优先技术支持；支持全部旗舰模型、MCP StepSearch" },
+        { id: "pl-step-pro", name: "Step Plan Flash Pro", price: 199, period: "month", mode: "quota", quota: 8000, consumeRate: 1, priceRate: 1, note: "高频深度使用；8000M Credit/月，月末清零；Studio额外赠送40%创作额度；含优先API速率、优先技术支持；支持全部旗舰模型、MCP StepSearch" },
+        { id: "pl-step-max", name: "Step Plan Flash Max", price: 699, period: "month", mode: "quota", quota: 40000, consumeRate: 1, priceRate: 1, note: "高强度专业使用；40000M Credit/月，月末清零；Studio额外赠送40%创作额度；含优先API速率、优先技术支持；支持全部旗舰模型、MCP StepSearch" },
+        { id: "pl-step-mini-q", name: "Step Plan Flash Mini-季付", price: 129, period: "quarter", mode: "quota", quota: 1200, consumeRate: 1, priceRate: 1, note: "季付一次性129元，每月发放400M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
+        { id: "pl-step-plus-q", name: "Step Plan Flash Plus-季付", price: 269, period: "quarter", mode: "quota", quota: 4800, consumeRate: 1, priceRate: 1, note: "季付一次性269元，每月发放1600M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
+        { id: "pl-step-pro-q", name: "Step Plan Flash Pro-季付", price: 539, period: "quarter", mode: "quota", quota: 24000, consumeRate: 1, priceRate: 1, note: "季付一次性539元，每月发放8000M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
+        { id: "pl-step-max-q", name: "Step Plan Flash Max-季付", price: 1889, period: "quarter", mode: "quota", quota: 120000, consumeRate: 1, priceRate: 1, note: "季付一次性1889元，每月发放40000M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
+        { id: "pl-step-mini-y", name: "Step Plan Flash Mini-年付", price: 456, period: "year", mode: "quota", quota: 4800, consumeRate: 1, priceRate: 1, note: "年付一次性456元，每月发放400M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
+        { id: "pl-step-plus-y", name: "Step Plan Flash Plus-年付", price: 936, period: "year", mode: "quota", quota: 19200, consumeRate: 1, priceRate: 1, note: "年付一次性936元，每月发放1600M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
+        { id: "pl-step-pro-y", name: "Step Plan Flash Pro-年付", price: 1860, period: "year", mode: "quota", quota: 96000, consumeRate: 1, priceRate: 1, note: "年付一次性1860元，每月发放8000M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
+        { id: "pl-step-max-y", name: "Step Plan Flash Max-年付", price: 6666, period: "year", mode: "quota", quota: 480000, consumeRate: 1, priceRate: 1, note: "年付一次性6666元，每月发放40000M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
+        { id: "pl-step-oil-s", name: "Step Plan 小油包(加油包)", price: 49, period: "month", mode: "quota", quota: 400, consumeRate: 1, priceRate: 1, note: "仅订阅用户可购买；400M Credit；独立30天有效期，不跟随套餐月池周期（周期按30天≈1月折算）" },
+        { id: "pl-step-oil-l", name: "Step Plan 大油包(加油包)", price: 99, period: "month", mode: "quota", quota: 1600, consumeRate: 1, priceRate: 1, note: "仅订阅用户可购买；1600M Credit；独立30天有效期，不跟随套餐月池周期（周期按30天≈1月折算）" }
       ]
     }
   ],
