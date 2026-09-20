@@ -13,8 +13,9 @@
 // v8：StepFun 改为逐模型建模——拿到三个模型的 API 原价（输入命中/未命中/输出，元/Mtok）后，
 // 平台拆为 step-5-preview / step-3.7-flash / step-3.5-flash，套餐改额度制，额度 = 周期内 Credit 池
 // （1M Credit = 1元，季/年付为该周期累计发放量），综合单价按全局混合比公式现算，与官方口径一致。
+// v9：StepFun 移除 step-3.5-flash（只保留 step-5-preview 与 step-3.7-flash 两个模型）。
 window.BUILTIN_DATA = {
-  version: 8,
+  version: 9,
   global: {
     inputRatio: 0.99,
     cacheHitRate: 0.95,
@@ -86,8 +87,7 @@ window.BUILTIN_DATA = {
       name: "阶跃星辰StepFun",
       models: [
         { id: "m-step-5", name: "step-5-preview", priceIn: 7.00, priceOut: 20.00, priceCache: 0.35, note: "" },
-        { id: "m-step-37f", name: "step-3.7-flash", priceIn: 1.35, priceOut: 8.10, priceCache: 0.27, note: "" },
-        { id: "m-step-35f", name: "step-3.5-flash", priceIn: 0.70, priceOut: 2.10, priceCache: 0.14, note: "" }
+        { id: "m-step-37f", name: "step-3.7-flash", priceIn: 1.35, priceOut: 8.10, priceCache: 0.27, note: "" }
       ],
       plans: [
         { id: "pl-step-mini", name: "Step Plan Flash Mini", price: 49, period: "month", mode: "quota", quota: 400, consumeRate: 1, priceRate: 1, note: "入门体验；400M Credit/月，月末清零；Studio额外赠送40%创作额度；无优先速率；支持全部旗舰模型、MCP StepSearch" },
