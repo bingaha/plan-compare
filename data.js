@@ -14,8 +14,14 @@
 // 平台拆为 step-5-preview / step-3.7-flash / step-3.5-flash，套餐改额度制，额度 = 周期内 Credit 池
 // （1M Credit = 1元，季/年付为该周期累计发放量），综合单价按全局混合比公式现算，与官方口径一致。
 // v9：StepFun 移除 step-3.5-flash（只保留 step-5-preview 与 step-3.7-flash 两个模型）。
+// v10：新增 小米 MiMo 平台（Xiaomi MiMo Token Plan）——Lite/Standard/Pro/Max 四档月付
+// （¥39/99/329/659），套餐总量 41/110/380/820 亿 Credits（≈1/2.7/9.3/20 × Lite）。
+// 模型 mimo-v2.6-pro / mimo-v2.6-flash 官方按 Token 标价（命中/未命中/输出 Credits）：
+// pro 2.5/300/600，flash 2/100/200。本表统一折算为「百万 Credits」口径：
+// 套餐额度 41亿 = 4100（百万 Credits）；模型单价每 Mtok 多少百万 Credits，
+// 数值与官方「每 Token Credits」标价相同（300 Credits/Token ≡ 300 百万Credits/Mtok）。
 window.BUILTIN_DATA = {
-  version: 9,
+  version: 10,
   global: {
     inputRatio: 0.99,
     cacheHitRate: 0.95,
@@ -104,6 +110,20 @@ window.BUILTIN_DATA = {
         { id: "pl-step-max-y", name: "Step Plan Flash Max-年付", price: 6666, period: "year", mode: "quota", quota: 480000, consumeRate: 1, priceRate: 1, note: "年付一次性6666元，每月发放40000M Credit；月末清零；Studio额外赠送40%创作额度；含优先速率与技术支持" },
         { id: "pl-step-oil-s", name: "Step Plan 小油包(加油包)", price: 49, period: "month", mode: "quota", quota: 400, consumeRate: 1, priceRate: 1, note: "仅订阅用户可购买；400M Credit；独立30天有效期，不跟随套餐月池周期（周期按30天≈1月折算）" },
         { id: "pl-step-oil-l", name: "Step Plan 大油包(加油包)", price: 99, period: "month", mode: "quota", quota: 1600, consumeRate: 1, priceRate: 1, note: "仅订阅用户可购买；1600M Credit；独立30天有效期，不跟随套餐月池周期（周期按30天≈1月折算）" }
+      ]
+    },
+    {
+      id: "p-mimo",
+      name: "小米 MiMo",
+      models: [
+        { id: "m-mimo-pro", name: "mimo-v2.6-pro", priceIn: 300, priceOut: 600, priceCache: 2.5, note: "官方按 Token 标价：命中缓存 2.5 / 未命中 300 / 输出 600（Credits/Token）。本表单价单位为百万 Credits/Mtok（与官方每 Token 标价数值相同）" },
+        { id: "m-mimo-flash", name: "mimo-v2.6-flash", priceIn: 100, priceOut: 200, priceCache: 2, note: "官方按 Token 标价：命中缓存 2 / 未命中 100 / 输出 200（Credits/Token）。单位口径同 mimo-v2.6-pro" }
+      ],
+      plans: [
+        { id: "pl-mimo-lite", name: "Token Plan Lite", price: 39, period: "month", mode: "quota", quota: 4100, consumeRate: 1, priceRate: 1, note: "轻量体验；每月 41 亿 Credits 套餐总量；支持 V2.6 全新旗舰模型（文本模型 / 全模态 / 语音）；按月计费。额度单位：百万 Credits（41亿 = 4100）" },
+        { id: "pl-mimo-std", name: "Token Plan Standard", price: 99, period: "month", mode: "quota", quota: 11000, consumeRate: 1, priceRate: 1, note: "日常办公；每月 110 亿 Credits（≈ 2.7 x Lite）；支持 V2.6 全新旗舰模型（文本模型 / 全模态 / 语音）；按月计费" },
+        { id: "pl-mimo-pro", name: "Token Plan Pro", price: 329, period: "month", mode: "quota", quota: 38000, consumeRate: 1, priceRate: 1, note: "专业开发；每月 380 亿 Credits（≈ 9.3 x Lite）；支持 V2.6 全新旗舰模型（文本模型 / 全模态 / 语音）；按月计费" },
+        { id: "pl-mimo-max", name: "Token Plan Max", price: 659, period: "month", mode: "quota", quota: 82000, consumeRate: 1, priceRate: 1, note: "高强度开发；每月 820 亿 Credits（= 20 x Lite）；支持 V2.6 全新旗舰模型（文本模型 / 全模态 / 语音）；按月计费" }
       ]
     }
   ],
