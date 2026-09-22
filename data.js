@@ -21,8 +21,10 @@
 // 套餐额度 41亿 = 4100（百万 Credits）；模型单价每 Mtok 多少百万 Credits，
 // 数值与官方「每 Token Credits」标价相同（300 Credits/Token ≡ 300 百万Credits/Mtok）。
 // v11：StepFun 只保留季付套餐（删除月付、年付与加油包）。
+// v12：CommandCode Goat 套餐更正——定名 Goat MIMO-FLASH，额度为 $30/月（美元口径，非元），
+// 模型 Deepseek-Flash 改按美元标价 0.14 / 0.28 / 0.0028（$/Mtok）。
 window.BUILTIN_DATA = {
-  version: 11,
+  version: 12,
   global: {
     inputRatio: 0.99,
     cacheHitRate: 0.95,
@@ -73,10 +75,10 @@ window.BUILTIN_DATA = {
       id: "p-cc",
       name: "CommandCode",
       models: [
-        { id: "cf74ebd2-e70e-4f30-96c1-1dd7b486ba0d", name: "Deepseek-Flash", priceIn: 0.15, priceOut: 0.6, priceCache: 0.003, note: "非高峰期" }
+        { id: "cf74ebd2-e70e-4f30-96c1-1dd7b486ba0d", name: "Deepseek-Flash", priceIn: 0.14, priceOut: 0.28, priceCache: 0.0028, note: "$/Mtok；非高峰期" }
       ],
       plans: [
-        { id: "pl-goat", name: "Goat DS-FLASH", price: 72.5, period: "month", mode: "quota", quota: 40, consumeRate: 1, priceRate: 1, note: "" }
+        { id: "pl-goat", name: "Goat MIMO-FLASH", price: 72.5, period: "month", mode: "quota", quota: 30, consumeRate: 1, priceRate: 1, note: "月付 ¥72.5；套餐内可用额度 $30/月（美元口径，按模型美元标价扣费）" }
       ]
     },
     {
