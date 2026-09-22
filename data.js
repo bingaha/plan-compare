@@ -25,10 +25,11 @@
 // v13：CommandCode 拆为两个独立 Goat 套餐——Goat DS-FLASH（额度 $40/月，Deepseek-Flash
 // 0.15 / 0.6 / 0.003 $/Mtok）与 Goat MIMO-FLASH（额度 $30/月，mimo-v2.6-flash
 // 0.14 / 0.28 / 0.0028 $/Mtok），均为月付 ¥72.5，额度池互不影响。
-// v14：两个 Goat 套餐与模型一一锁定，拆为两个平台条目——CommandCode（Goat DS-FLASH ×
+// v14：两个 Goat 套餐与模型一一锁定，拆为两个平台条目——CommandCode Ds（Goat DS-FLASH ×
 // Deepseek-Flash）与 CommandCode MiMo（Goat MIMO-FLASH × mimo-v2.6-flash），消除主表交叉行。
+// v15：CommandCode 平台更名为 CommandCode Ds（与 CommandCode MiMo 命名对称）。
 window.BUILTIN_DATA = {
-  version: 14,
+  version: 15,
   global: {
     inputRatio: 0.99,
     cacheHitRate: 0.95,
@@ -77,7 +78,7 @@ window.BUILTIN_DATA = {
     },
     {
       id: "p-cc",
-      name: "CommandCode",
+      name: "CommandCode Ds",
       models: [
         { id: "m-cc-dsflash", name: "Deepseek-Flash", priceIn: 0.15, priceOut: 0.6, priceCache: 0.003, note: "$/Mtok；非高峰期" }
       ],
