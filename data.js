@@ -23,8 +23,11 @@
 // v11：StepFun 只保留季付套餐（删除月付、年付与加油包）。
 // v12：CommandCode Goat 套餐更正——定名 Goat MIMO-FLASH，额度为 $30/月（美元口径，非元），
 // 模型 Deepseek-Flash 改按美元标价 0.14 / 0.28 / 0.0028（$/Mtok）。
+// v13：CommandCode 拆为两个独立 Goat 套餐——Goat DS-FLASH（额度 $40/月，Deepseek-Flash
+// 0.15 / 0.6 / 0.003 $/Mtok）与 Goat MIMO-FLASH（额度 $30/月，mimo-v2.6-flash
+// 0.14 / 0.28 / 0.0028 $/Mtok），均为月付 ¥72.5，额度池互不影响。
 window.BUILTIN_DATA = {
-  version: 12,
+  version: 13,
   global: {
     inputRatio: 0.99,
     cacheHitRate: 0.95,
@@ -75,10 +78,12 @@ window.BUILTIN_DATA = {
       id: "p-cc",
       name: "CommandCode",
       models: [
-        { id: "cf74ebd2-e70e-4f30-96c1-1dd7b486ba0d", name: "Deepseek-Flash", priceIn: 0.14, priceOut: 0.28, priceCache: 0.0028, note: "$/Mtok；非高峰期" }
+        { id: "cf74ebd2-e70e-4f30-96c1-1dd7b486ba0d", name: "Deepseek-Flash", priceIn: 0.15, priceOut: 0.6, priceCache: 0.003, note: "$/Mtok；非高峰期" },
+        { id: "m-cc-mimo-flash", name: "mimo-v2.6-flash", priceIn: 0.14, priceOut: 0.28, priceCache: 0.0028, note: "$/Mtok" }
       ],
       plans: [
-        { id: "pl-goat", name: "Goat MIMO-FLASH", price: 72.5, period: "month", mode: "quota", quota: 30, consumeRate: 1, priceRate: 1, note: "月付 ¥72.5；套餐内可用额度 $30/月（美元口径，按模型美元标价扣费）" }
+        { id: "pl-goat", name: "Goat DS-FLASH", price: 72.5, period: "month", mode: "quota", quota: 40, consumeRate: 1, priceRate: 1, note: "月付 ¥72.5；套餐内可用额度 $40/月（美元口径，按模型美元标价扣费）" },
+        { id: "pl-goat-mimo", name: "Goat MIMO-FLASH", price: 72.5, period: "month", mode: "quota", quota: 30, consumeRate: 1, priceRate: 1, note: "月付 ¥72.5；套餐内可用额度 $30/月（美元口径，按模型美元标价扣费）" }
       ]
     },
     {
