@@ -31,8 +31,9 @@
 // v16：额度制支持「模型自有额度」——models[].quota 可选（>0），行有效额度 = 模型额度 ?? 套餐额度，
 // 套餐 quota 退居默认值。CommandCode 两个平台条目合并回一个 CommandCode：Goat 套餐（月付 ¥72.5）
 // 内各模型独立额度桶——Deepseek-Flash $40 / mimo-v2.6-flash $30 / mimo-v2.6-pro $15，桶间按比例通用。
+// v17：补齐 CommandCode Goat 套餐 mimo-v2.6-pro 单价（0.435 / 0.87 / 0.0036 $/Mtok）。
 window.BUILTIN_DATA = {
-  version: 16,
+  version: 17,
   global: {
     inputRatio: 0.99,
     cacheHitRate: 0.95,
@@ -85,7 +86,7 @@ window.BUILTIN_DATA = {
       models: [
         { id: "m-cc-dsflash", name: "Deepseek-Flash", priceIn: 0.15, priceOut: 0.6, priceCache: 0.003, quota: 40, note: "$/Mtok；非高峰期" },
         { id: "m-cc-mimoflash", name: "mimo-v2.6-flash", priceIn: 0.14, priceOut: 0.28, priceCache: 0.0028, quota: 30, note: "$/Mtok" },
-        { id: "m-cc-mimopro", name: "mimo-v2.6-pro", priceIn: null, priceOut: null, priceCache: null, quota: 15, note: "$/Mtok；单价待补" }
+        { id: "m-cc-mimopro", name: "mimo-v2.6-pro", priceIn: 0.435, priceOut: 0.87, priceCache: 0.0036, quota: 15, note: "$/Mtok" }
       ],
       plans: [
         { id: "pl-goat", name: "Goat", price: 72.5, period: "month", mode: "quota", quota: null, consumeRate: 1, priceRate: 1, note: "月付 ¥72.5；套餐内各模型有独立额度桶（美元口径，按模型美元标价扣费）：Deepseek-Flash $40 / mimo-v2.6-flash $30 / mimo-v2.6-pro $15。各桶按比例通用——用掉某模型额度的 1/3，剩余 2/3 可按其他模型额度折算使用（如 deepseek-flash 可用 40×2/3）" }
