@@ -28,8 +28,11 @@
 // v14：两个 Goat 套餐与模型一一锁定，拆为两个平台条目——CommandCode Ds（Goat DS-FLASH ×
 // Deepseek-Flash）与 CommandCode MiMo（Goat MIMO-FLASH × mimo-v2.6-flash），消除主表交叉行。
 // v15：CommandCode 平台更名为 CommandCode Ds（与 CommandCode MiMo 命名对称）。
+// v16：额度制支持「模型自有额度」——models[].quota 可选（>0），行有效额度 = 模型额度 ?? 套餐额度，
+// 套餐 quota 退居默认值。CommandCode 两个平台条目合并回一个 CommandCode：Goat 套餐（月付 ¥72.5）
+// 内各模型独立额度桶——Deepseek-Flash $40 / mimo-v2.6-flash $30 / mimo-v2.6-pro $15，桶间按比例通用。
 window.BUILTIN_DATA = {
-  version: 15,
+  version: 16,
   global: {
     inputRatio: 0.99,
     cacheHitRate: 0.95,
@@ -78,22 +81,14 @@ window.BUILTIN_DATA = {
     },
     {
       id: "p-cc",
-      name: "CommandCode Ds",
+      name: "CommandCode",
       models: [
-        { id: "m-cc-dsflash", name: "Deepseek-Flash", priceIn: 0.15, priceOut: 0.6, priceCache: 0.003, note: "$/Mtok；非高峰期" }
+        { id: "m-cc-dsflash", name: "Deepseek-Flash", priceIn: 0.15, priceOut: 0.6, priceCache: 0.003, quota: 40, note: "$/Mtok；非高峰期" },
+        { id: "m-cc-mimoflash", name: "mimo-v2.6-flash", priceIn: 0.14, priceOut: 0.28, priceCache: 0.0028, quota: 30, note: "$/Mtok" },
+        { id: "m-cc-mimopro", name: "mimo-v2.6-pro", priceIn: null, priceOut: null, priceCache: null, quota: 15, note: "$/Mtok；单价待补" }
       ],
       plans: [
-        { id: "pl-goat-ds", name: "Goat DS-FLASH", price: 72.5, period: "month", mode: "quota", quota: 40, consumeRate: 1, priceRate: 1, note: "月付 ¥72.5；套餐内可用额度 $40/月（美元口径，按模型美元标价扣费）" }
-      ]
-    },
-    {
-      id: "p-cc-mimo",
-      name: "CommandCode MiMo",
-      models: [
-        { id: "m-cc-mimoflash", name: "mimo-v2.6-flash", priceIn: 0.14, priceOut: 0.28, priceCache: 0.0028, note: "$/Mtok" }
-      ],
-      plans: [
-        { id: "pl-goat-mimo", name: "Goat MIMO-FLASH", price: 72.5, period: "month", mode: "quota", quota: 30, consumeRate: 1, priceRate: 1, note: "月付 ¥72.5；套餐内可用额度 $30/月（美元口径，按模型美元标价扣费）" }
+        { id: "pl-goat", name: "Goat", price: 72.5, period: "month", mode: "quota", quota: null, consumeRate: 1, priceRate: 1, note: "月付 ¥72.5；套餐内各模型有独立额度桶（美元口径，按模型美元标价扣费）：Deepseek-Flash $40 / mimo-v2.6-flash $30 / mimo-v2.6-pro $15。各桶按比例通用——用掉某模型额度的 1/3，剩余 2/3 可按其他模型额度折算使用（如 deepseek-flash 可用 40×2/3）" }
       ]
     },
     {

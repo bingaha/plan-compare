@@ -152,6 +152,7 @@ thead th.s0,thead th.s1,thead th.s2{z-index:7}
           "id": "m-53",                      // 非空字符串，全局唯一
           "name": "GLM-5.3",                 // 非空字符串；评分列按模型名匹配
           "priceIn": 690, "priceOut": 2400, "priceCache": 170,   // 各 ≥0 的数字或 null：输入价 / 输出价 / 缓存命中价
+          "quota": 128571,                   // 可省略；>0 的数字或 null：该模型自有额度（仅额度制）。不填则用套餐 quota 作默认值
           "note": "抵扣系数等说明",           // 可省略；字符串
           "origin": "builtin"                // 可省略；"builtin" | "custom"
         }
@@ -163,7 +164,7 @@ thead th.s0,thead th.s1,thead th.s2{z-index:7}
           "price": 283.2,                    // ≥0 的数字或 null；人民币实付价
           "period": "quarter",               // "month" | "quarter" | "year"
           "mode": "quota",                   // "quota" 额度制 | "usage" 用量制
-          "quota": 128571,                   // mode=quota 用；>0 的数字或 null（用量制可省略），按套餐内计价币种
+          "quota": 128571,                   // mode=quota 用；>0 的数字或 null（用量制可省略）；套餐默认额度，按计价币种。模型单独填了 quota 时优先用模型的
           "usageM": { "m-53": 1000 },        // mode=usage 用；键必须是本平台的模型 id，值是 >0 的数字或 null
           "consumeRate": 2,                  // 可省略；消耗倍率，>0 的数字或 null，缺省按 1
           "priceRate": 1,                    // 可省略；价格倍率，>0 的数字或 null，缺省按 1
@@ -178,7 +179,7 @@ thead th.s0,thead th.s1,thead th.s2{z-index:7}
   ]
 }
 
-主表每行 = 平台下的 套餐 × 模型 自动配对，价格与倍率在套餐/模型层只存一份。导入与现有数据合并：global 取导入值；平台按 id、评分按「评分源+模型名」，同者更新、新者追加，现有其他内容保留，并标记为「已修改」。</pre>
+主表每行 = 平台下的 套餐 × 模型 自动配对，价格与倍率在套餐/模型层只存一份。额度制下每行有效额度 = 模型自有额度 ?? 套餐额度（模型没填就用套餐的）。导入与现有数据合并：global 取导入值；平台按 id、评分按「评分源+模型名」，同者更新、新者追加，现有其他内容保留，并标记为「已修改」。</pre>
 </footer>
 
 <div id="mgmtOverlay" class="overlay hidden">
@@ -311,7 +312,7 @@ function compute(r) {
       out.mtoksPerYuan = eff / (price * pr);
     }
   } else {
-    const pin = nz(m.priceIn, NaN), pout = nz(m.priceOut, NaN), pc = nz(m.priceCache, NaN), q = nz(pl.quota, NaN);
+    const pin = nz(m.priceIn, NaN), pout = nz(m.priceOut, NaN), pc = nz(m.priceCache, NaN), q = nz(m.quota ?? pl.quota, NaN);
     if ([ir, hr, or, pin, pout, pc].every(isFinite)) {
       const b = ir * (hr * pc + (1 - hr) * pin) + or * pout;
       out.blended = b;
@@ -341,7 +342,7 @@ const BASE_COLS = [
   { k: 'priceRate', label: '价格倍率', type: 'num', cat: 'cfg', get: (r) => r.plan.priceRate, title: '名义价格 × 该倍率 = 实际价格（如 2 折渠道填 0.2）' },
   { k: 'monthlyCost', label: '月均成本(元)', calc: 'monthlyCost', money: true, cat: 'gen' },
   { k: 'usageM', label: '用量M(Mtok)', type: 'num', usageOnly: true, cat: 'cfg', get: (r) => r.plan.mode === 'usage' ? r.plan.usageM?.[r.model.id] : null, title: '用量制套餐：该模型单周期可用量，行内「改M」维护' },
-  { k: 'quota', label: '套餐内额度', type: 'num', quotaOnly: true, cat: 'cfg', get: (r) => r.plan.quota, title: '额度制套餐：按套餐内计价币种填写' },
+  { k: 'quota', label: '有效额度', type: 'num', quotaOnly: true, cat: 'cfg', get: (r) => r.model.quota ?? r.plan.quota, title: '额度制：模型自有额度优先，未填则用套餐默认额度；与单价同币种' },
   { k: 'priceIn', label: '输入价', type: 'num', cat: 'cfg', get: (r) => r.model.priceIn, title: '每 Mtok，与额度同币种' },
   { k: 'priceOut', label: '输出价', type: 'num', cat: 'cfg', get: (r) => r.model.priceOut, title: '每 Mtok，与额度同币种' },
   { k: 'priceCache', label: '缓存价', type: 'num', cat: 'cfg', get: (r) => r.model.priceCache, title: '缓存命中每 Mtok，与额度同币种' },
@@ -610,13 +611,14 @@ function validateImport(data) {
     p.models.forEach((m, mi) => {
       const mat = `${at}.models[${mi}]`;
       if (!isObj(m)) { bad(`${mat} 不是对象`); return; }
-      extraKeys(m, ['id', 'name', 'priceIn', 'priceOut', 'priceCache', 'note', 'origin'], mat);
+      extraKeys(m, ['id', 'name', 'priceIn', 'priceOut', 'priceCache', 'quota', 'note', 'origin'], mat);
       if (!nonEmptyStr(m.id)) bad(`${mat}.id 必须是非空字符串`);
       else if (seenModel.has(m.id)) bad(`模型 id 全局重复："${m.id}"（${mat}）`);
       else { seenModel.add(m.id); modelIds.add(m.id); }
       if (!nonEmptyStr(m.name)) bad(`${mat}.name 必须是非空字符串`);
       for (const k of ['priceIn', 'priceOut', 'priceCache'])
         if (!numOrNull(m[k]) || (isNum(m[k]) && m[k] < 0)) bad(`${mat}.${k} 必须是 ≥0 的数字或 null`);
+      if (m.quota !== undefined && (!numOrNull(m.quota) || (isNum(m.quota) && m.quota <= 0))) bad(`${mat}.quota 必须是 >0 的数字、null 或省略（不填则用套餐默认额度）`);
       if (m.note !== undefined && typeof m.note !== 'string') bad(`${mat}.note 必须是字符串`);
       if (m.origin !== undefined && !originOk(m.origin)) bad(`${mat}.origin 只能是 "builtin" 或 "custom"`);
     });
@@ -744,7 +746,7 @@ $('#mgmtOverlay').addEventListener('click', (e) => {
   }
   if (e.target.closest('[data-add="model"]')) {
     const p = DS().platforms.find((x) => x.id === mgmtSel);
-    if (p) { p.models.push({ id: uuid(), name: '', priceIn: null, priceOut: null, priceCache: null, note: '', origin: 'custom' }); markModified(); persist(); renderMgmt(); render(); }
+    if (p) { p.models.push({ id: uuid(), name: '', priceIn: null, priceOut: null, priceCache: null, quota: null, note: '', origin: 'custom' }); markModified(); persist(); renderMgmt(); render(); }
     return;
   }
   const delModel = e.target.closest('[data-delmodel]');
@@ -838,6 +840,7 @@ function detailHtml(p) {
     <td class="num"><input type="number" step="any" data-scope="model" data-id="${esc(m.id)}" data-k="priceIn" value="${m.priceIn ?? ''}"></td>
     <td class="num"><input type="number" step="any" data-scope="model" data-id="${esc(m.id)}" data-k="priceOut" value="${m.priceOut ?? ''}"></td>
     <td class="num"><input type="number" step="any" data-scope="model" data-id="${esc(m.id)}" data-k="priceCache" value="${m.priceCache ?? ''}"></td>
+    <td class="num"><input type="number" step="any" data-scope="model" data-id="${esc(m.id)}" data-k="quota" value="${m.quota ?? ''}" title="该模型自有额度；不填则用套餐默认额度"></td>
     <td><input data-scope="model" data-id="${esc(m.id)}" data-k="note" value="${esc(m.note ?? '')}" placeholder="说明（抵扣系数等）"></td>
     <td class="op"><button class="del" data-delmodel="${esc(m.id)}">删</button></td>
   </tr>`).join('');
@@ -847,7 +850,7 @@ function detailHtml(p) {
       <label>购买价(元) <input class="w60" type="number" step="any" data-scope="plan" data-id="${esc(pl.id)}" data-k="price" value="${pl.price ?? ''}"></label>
       <label>周期 <select data-scope="plan" data-id="${esc(pl.id)}" data-k="period">${['month', 'quarter', 'year'].map((v) => `<option value="${v}"${pl.period === v ? ' selected' : ''}>${PERIOD_TEXT[v]}</option>`).join('')}</select></label>
       <label>方式 <select data-scope="plan" data-id="${esc(pl.id)}" data-k="mode">${['quota', 'usage'].map((v) => `<option value="${v}"${pl.mode === v ? ' selected' : ''}>${v === 'quota' ? '额度制' : '用量制'}</option>`).join('')}</select></label>
-      ${pl.mode === 'quota' ? `<label>套餐内额度 <input class="w60" type="number" step="any" data-scope="plan" data-id="${esc(pl.id)}" data-k="quota" value="${pl.quota ?? ''}"></label>` : ''}
+      ${pl.mode === 'quota' ? `<label>默认额度 <input class="w60" type="number" step="any" data-scope="plan" data-id="${esc(pl.id)}" data-k="quota" value="${pl.quota ?? ''}" title="套餐默认额度；模型单独填了额度时优先用模型的"></label>` : ''}
       <label>消耗倍率 <input class="w60" type="number" step="any" data-scope="plan" data-id="${esc(pl.id)}" data-k="consumeRate" value="${pl.consumeRate ?? 1}"></label>
       <label>价格倍率 <input class="w60" type="number" step="any" data-scope="plan" data-id="${esc(pl.id)}" data-k="priceRate" value="${pl.priceRate ?? 1}"></label>
       <button class="del" data-delplan="${esc(pl.id)}" title="删除套餐">删</button>
@@ -858,7 +861,7 @@ function detailHtml(p) {
   return `
     <div class="planrow"><label>平台名 <input class="wname" data-scope="platform" data-id="${esc(p.id)}" data-k="name" value="${esc(p.name ?? '')}"></label><span class="hint">该平台 ${p.models.length} 个模型 × ${p.plans.length} 个套餐 = 主表 ${p.models.length * p.plans.length} 行</span></div>
     <h3>模型价格 <button class="ghost sm" data-add="model">+ 添加模型</button></h3>
-    <table class="mtab"><thead><tr><th>模型名</th><th>输入价</th><th>输出价</th><th>缓存价</th><th>说明</th><th></th></tr></thead><tbody>${modelRows || '<tr><td colspan="6" class="hint">暂无模型，添加后主表才会出现该平台的行</td></tr>'}</tbody></table>
+    <table class="mtab"><thead><tr><th>模型名</th><th>输入价</th><th>输出价</th><th>缓存价</th><th title="该模型自有额度；不填则用套餐默认额度（与单价同币种）">额度</th><th>说明</th><th></th></tr></thead><tbody>${modelRows || '<tr><td colspan="7" class="hint">暂无模型，添加后主表才会出现该平台的行</td></tr>'}</tbody></table>
     <h3>套餐 <button class="ghost sm" data-add="plan">+ 添加套餐</button></h3>
     ${planBoxes || '<div class="hint">暂无套餐</div>'}
   `;
